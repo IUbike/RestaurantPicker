@@ -1,0 +1,15 @@
+File: RestaurantPicker\Data\restaurants.csv
+````````
+
+````````
+Id,Name,PriceRange,FoodTypes,CuisineStyle,Purposes,Feature,Phone,BusinessHours,Address,IsBreakfastAvailable,IsLunchAvailable,IsDinnerAvailable,ImageFileName
+1,楊家豆漿,NT$50-100,豆漿;蛋餅;燒餅,台式,快速解決;早餐,有冷氣,05-2720001,06:00-10:30,中正大學附近,true,false,false,breakfast1.jpg
+2,味芳早餐,NT$40-80,豆漿;蛋餅;吐司;漢堡,台式,快速解決,傳統早點;價格實惠,05-2720002,06:00-10:30,中正大學附近,true,false,false,breakfast2.jpg
+3,金牌滷肉飯,NT$50-150,滷肉飯;便當,台式,快速解決;午餐,學生推薦;份量足,05-2720003,11:00-21:00,中正大學附近,false,true,true,lunch1.jpg
+4,品味香快炒,NT$95-155,炒飯;燴飯;炒麵,台式,快速解決,有冷氣;飲料無限供應,05-2720004,10:30-22:00,中正大學附近,false,true,true,lunch2.jpg
+5,富成屋拉麵,NT$130-220,拉麵,日式,快速解決;聚會,有冷氣;免費加麵一次,05-2720005,11:00-22:00,中正大學附近,false,true,true,lunch3.jpg
+6,豪記滷味,NT$50-150,滷味,台式,快速解決;宵夜,學生推薦;品項多元,05-2720006,17:00-23:30,中正大學附近,false,false,true,dinner1.jpg
+7,洵香麻辣燙,NT$80-200,麻辣燙,台式,快速解決;宵夜,有冷氣;可調整辣度,05-2720007,17:00-23:30,中正大學附近,false,false,true,dinner2.jpg
+8,a咖美食平價牛排,NT$150-300,牛排;鐵板麵,西式,聚會,有冷氣;飲料濃湯無限供應,05-2720008,11:00-22:00,中正大學附近,false,true,true,dinner3.jpg
+9,地中海美食,NT$100-200,義大利麵;燉飯,西式,聚會,有冷氣;飲料無限供應,05-2720009,11:00-22:00,中正大學附近,false,true,true,lunch4.jpg
+10,古早味炒麵（臭豆腐）,NT$40-100,炒麵;臭豆腐,台式,快速解決,臭豆腐外酥內嫩,05-2720010,11:00-21:00,中正大學附近,false,true,true,lunch5.jpg
