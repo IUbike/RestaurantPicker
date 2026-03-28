@@ -51,7 +51,11 @@
 
 - 串接規格：`RestaurantPicker/Docs/IntegrationSpec.md`
 - 操作手冊：`RestaurantPicker/Docs/UserManual.md`
-- 專案介紹：`RestaurantPicker/Docs/ProjectIntroduction.md`
+- 專題介紹：`RestaurantPicker/Docs/ProjectIntroduction.md`
+- 資料組手冊：`RestaurantPicker/Docs/DataTeamGuide.md`
+- UI 組手冊：`RestaurantPicker/Docs/UiTeamGuide.md`
+- Git/上傳手冊：`RestaurantPicker/Docs/GitWorkflowGuide.md`
+- Issue 範本：`.github/ISSUE_TEMPLATE/task.md`
 
 ---
 
