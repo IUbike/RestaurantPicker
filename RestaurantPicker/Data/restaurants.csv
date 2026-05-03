@@ -13,3 +13,4 @@ Id,Name,PriceRange,FoodTypes,CuisineStyle,Purposes,Feature,Phone,BusinessHours,A
 8,a咖美食平價牛排,NT$150-300,牛排;鐵板麵,西式,聚會,有冷氣;飲料濃湯無限供應,05-2720008,11:00-22:00,中正大學附近,false,true,true,dinner3.jpg
 9,地中海美食,NT$100-200,義大利麵;燉飯,西式,聚會,有冷氣;飲料無限供應,05-2720009,11:00-22:00,中正大學附近,false,true,true,lunch4.jpg
 10,古早味炒麵（臭豆腐）,NT$40-100,炒麵;臭豆腐,台式,快速解決,臭豆腐外酥內嫩,05-2720010,11:00-21:00,中正大學附近,false,true,true,lunch5.jpg
+11.六妹的店,NT$100-200,義大利麵,燉飯
