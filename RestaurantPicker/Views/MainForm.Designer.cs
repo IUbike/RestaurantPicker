@@ -28,85 +28,137 @@ namespace RestaurantPicker.Views
         /// </summary>
         private void InitializeComponent()
         {
-            this.btnStart = new System.Windows.Forms.Button();
-            this.btnManageRestaurant = new System.Windows.Forms.Button();
-            this.btnManagePreference = new System.Windows.Forms.Button();
-            this.lblTitle = new System.Windows.Forms.Label();
-            this.SuspendLayout();
-            
-            // lblTitle
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("微軟正黑體", 24F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.lblTitle.ForeColor = System.Drawing.Color.DarkBlue;
-            this.lblTitle.Location = new System.Drawing.Point(80, 40);
-            this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(240, 50);
-            this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "不知道吃什麼？";
-            this.lblTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            
-            // btnStart
-            this.btnStart.BackColor = System.Drawing.Color.Green;
-            this.btnStart.Font = new System.Drawing.Font("微軟正黑體", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btnStart.ForeColor = System.Drawing.Color.White;
-            this.btnStart.Location = new System.Drawing.Point(100, 120);
-            this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(200, 60);
-            this.btnStart.TabIndex = 1;
-            this.btnStart.Text = "開始選擇";
-            this.btnStart.UseVisualStyleBackColor = false;
-            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
-            
+            btnManageRestaurant = new Button();
+            btnManagePreference = new Button();
+            lblTitle = new Label();
+            btnTodayMeal = new Button();
+            btnReset = new Button();
+            btnStart = new Button();
+            SuspendLayout();
+            // 
             // btnManageRestaurant
-            this.btnManageRestaurant.BackColor = System.Drawing.Color.Orange;
-            this.btnManageRestaurant.Font = new System.Drawing.Font("微軟正黑體", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btnManageRestaurant.ForeColor = System.Drawing.Color.White;
-            this.btnManageRestaurant.Location = new System.Drawing.Point(100, 200);
-            this.btnManageRestaurant.Name = "btnManageRestaurant";
-            this.btnManageRestaurant.Size = new System.Drawing.Size(200, 46);
-            this.btnManageRestaurant.TabIndex = 2;
-            this.btnManageRestaurant.Text = "管理餐廳";
-            this.btnManageRestaurant.UseVisualStyleBackColor = false;
-            this.btnManageRestaurant.Click += new System.EventHandler(this.btnManageRestaurant_Click);
-            
+            // 
+            btnManageRestaurant.BackColor = Color.Orange;
+            btnManageRestaurant.Font = new Font("微軟正黑體", 14F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            btnManageRestaurant.ForeColor = Color.White;
+            btnManageRestaurant.Location = new Point(327, 551);
+            btnManageRestaurant.Margin = new Padding(7);
+            btnManageRestaurant.Name = "btnManageRestaurant";
+            btnManageRestaurant.Size = new Size(467, 106);
+            btnManageRestaurant.TabIndex = 3;
+            btnManageRestaurant.Text = "管理餐廳";
+            btnManageRestaurant.UseVisualStyleBackColor = false;
+            btnManageRestaurant.Click += btnManageRestaurant_Click;
+            // 
             // btnManagePreference
-            this.btnManagePreference.BackColor = System.Drawing.Color.SteelBlue;
-            this.btnManagePreference.Font = new System.Drawing.Font("微軟正黑體", 13F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btnManagePreference.ForeColor = System.Drawing.Color.White;
-            this.btnManagePreference.Location = new System.Drawing.Point(100, 258);
-            this.btnManagePreference.Name = "btnManagePreference";
-            this.btnManagePreference.Size = new System.Drawing.Size(200, 46);
-            this.btnManagePreference.TabIndex = 3;
-            this.btnManagePreference.Text = "管理收藏/封鎖";
-            this.btnManagePreference.UseVisualStyleBackColor = false;
-            this.btnManagePreference.Click += new System.EventHandler(this.btnManagePreference_Click);
-            
+            // 
+            btnManagePreference.BackColor = Color.SteelBlue;
+            btnManagePreference.Font = new Font("微軟正黑體", 13F, FontStyle.Regular, GraphicsUnit.Point, 136);
+            btnManagePreference.ForeColor = Color.White;
+            btnManagePreference.Location = new Point(327, 674);
+            btnManagePreference.Margin = new Padding(7);
+            btnManagePreference.Name = "btnManagePreference";
+            btnManagePreference.Size = new Size(467, 106);
+            btnManagePreference.TabIndex = 4;
+            btnManagePreference.Text = "管理收藏/封鎖";
+            btnManagePreference.UseVisualStyleBackColor = false;
+            btnManagePreference.Click += btnManagePreference_Click;
+            // 
+            // lblTitle
+            // 
+            lblTitle.AutoSize = true;
+            lblTitle.Font = new Font("微軟正黑體", 24F, FontStyle.Bold, GraphicsUnit.Point, 136);
+            lblTitle.ForeColor = Color.DarkBlue;
+            lblTitle.Location = new Point(107, 88);
+            lblTitle.Margin = new Padding(7, 0, 7, 0);
+            lblTitle.Name = "lblTitle";
+            lblTitle.Size = new Size(483, 81);
+            lblTitle.TabIndex = 0;
+            lblTitle.Text = "不知道吃什麼？";
+            lblTitle.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // btnStart
+            // 
+            btnStart.BackColor = Color.Transparent;
+            btnStart.BackgroundImage = Properties.Resources.icons_start1;
+            btnStart.BackgroundImageLayout = ImageLayout.Stretch;
+            btnStart.FlatAppearance.BorderSize = 0;
+            btnStart.FlatAppearance.MouseDownBackColor = Color.Transparent;
+            btnStart.FlatAppearance.MouseOverBackColor = Color.Transparent;
+            btnStart.FlatStyle = FlatStyle.Flat;
+            btnStart.Font = new Font("微軟正黑體", 18F, FontStyle.Bold, GraphicsUnit.Point, 136);
+            btnStart.ForeColor = Color.White;
+            btnStart.Location = new Point(327, 273);
+            btnStart.Margin = new Padding(7);
+            btnStart.Name = "btnStart";
+            btnStart.Size = new Size(467, 138);
+            btnStart.TabIndex = 1;
+            btnStart.Text = "  ";
+            btnStart.UseMnemonic = false;
+            btnStart.UseVisualStyleBackColor = false;
+            btnStart.Click += btnStart_Click;
+            // 
+            // btnTodayMeal
+            // 
+            btnTodayMeal.BackColor = Color.Violet;
+            btnTodayMeal.Font = new Font("微軟正黑體", 14F, FontStyle.Bold, GraphicsUnit.Point, 136);
+            btnTodayMeal.ForeColor = Color.White;
+            btnTodayMeal.Location = new Point(327, 428);
+            btnTodayMeal.Margin = new Padding(7);
+            btnTodayMeal.Name = "btnTodayMeal";
+            btnTodayMeal.Size = new Size(467, 106);
+            btnTodayMeal.TabIndex = 2;
+            btnTodayMeal.Text = "📅 今日餐廳";
+            btnTodayMeal.UseVisualStyleBackColor = false;
+            btnTodayMeal.Click += btnTodayMeal_Click;
+            // 
+            // btnReset
+            // 
+            btnReset.BackColor = Color.DarkRed;
+            btnReset.Font = new Font("微軟正黑體", 12F, FontStyle.Bold, GraphicsUnit.Point, 136);
+            btnReset.ForeColor = Color.White;
+            btnReset.Location = new Point(327, 798);
+            btnReset.Margin = new Padding(7);
+            btnReset.Name = "btnReset";
+            btnReset.Size = new Size(467, 46);
+            btnReset.TabIndex = 5;
+            btnReset.Text = "重置紀錄 (清除所有使用者資料)";
+            btnReset.UseVisualStyleBackColor = false;
+            btnReset.Click += btnReset_Click;
+            // 
             // MainForm
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.LightGray;
-            this.ClientSize = new System.Drawing.Size(400, 350);
-            this.Controls.Add(this.btnManagePreference);
-            this.Controls.Add(this.btnManageRestaurant);
-            this.Controls.Add(this.btnStart);
-            this.Controls.Add(this.lblTitle);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "隨機餐廳選擇系統";
-            this.Load += new System.EventHandler(this.MainForm_Load);
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            // 
+            AutoScaleDimensions = new SizeF(14F, 30F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.LightGray;
+            BackgroundImageLayout = ImageLayout.Zoom;
+            ClientSize = new Size(1195, 1034);
+            Controls.Add(btnReset);
+            Controls.Add(btnManagePreference);
+            Controls.Add(btnManageRestaurant);
+            Controls.Add(btnTodayMeal);
+            Controls.Add(btnStart);
+            Controls.Add(lblTitle);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Margin = new Padding(7);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "MainForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "隨機餐廳選擇系統";
+            FormClosing += MainForm_FormClosing;
+            Load += MainForm_Load;
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
 
         private System.Windows.Forms.Button btnStart;
+        private System.Windows.Forms.Button btnTodayMeal;
         private System.Windows.Forms.Button btnManageRestaurant;
         private System.Windows.Forms.Button btnManagePreference;
+        private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Label lblTitle;
     }
 }

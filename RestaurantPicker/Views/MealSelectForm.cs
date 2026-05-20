@@ -10,6 +10,11 @@ namespace RestaurantPicker.Views
         public int SelectedMinMealHour { get; private set; }
         public int SelectedMaxMealHour { get; private set; }
 
+        /// <summary>
+        /// 識別選擇的用餐時段類型：breakfast/lunch/dinner
+        /// </summary>
+        public string SelectedMealTimeType { get; private set; } = "lunch";
+
         private readonly List<string> _timeOptions = new List<string>();
 
         public MealSelectForm()
@@ -32,16 +37,19 @@ namespace RestaurantPicker.Views
             {
                 rbBreakfast.Checked = true;
                 SetTimeRange("06:00", "10:00");
+                SelectedMealTimeType = "breakfast";
             }
             else if (nowHour <= 15)
             {
                 rbLunch.Checked = true;
                 SetTimeRange("11:00", "14:00");
+                SelectedMealTimeType = "lunch";
             }
             else
             {
                 rbDinner.Checked = true;
                 SetTimeRange("17:00", "21:00");
+                SelectedMealTimeType = "dinner";
             }
         }
 
@@ -68,14 +76,17 @@ namespace RestaurantPicker.Views
             if (rbBreakfast.Checked)
             {
                 SetTimeRange("06:00", "10:00");
+                SelectedMealTimeType = "breakfast";  // 記錄時段類型
             }
             else if (rbLunch.Checked)
             {
                 SetTimeRange("11:00", "14:00");
+                SelectedMealTimeType = "lunch";
             }
             else if (rbDinner.Checked)
             {
                 SetTimeRange("17:00", "21:00");
+                SelectedMealTimeType = "dinner";
             }
         }
 
@@ -120,7 +131,8 @@ namespace RestaurantPicker.Views
                 SelectedMaxMealHour = 23;
             }
 
-            using var categoryForm = new CategorySelectForm(SelectedMinMealHour, SelectedMaxMealHour);
+            // 傳入 SelectedMealTimeType，讓 CategorySelectForm 知道是哪個時段
+            using var categoryForm = new CategorySelectForm(SelectedMinMealHour, SelectedMaxMealHour, SelectedMealTimeType);
             if (categoryForm.ShowDialog() == DialogResult.OK)
             {
                 this.DialogResult = DialogResult.OK;

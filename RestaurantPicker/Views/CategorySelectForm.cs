@@ -15,6 +15,9 @@ namespace RestaurantPicker.Views
         private readonly int _minMealHour;
         private readonly int _maxMealHour;
 
+        // 用餐時段類型：breakfast/lunch/dinner
+        private readonly string _mealTimeType;
+
         // 服務層
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly RestaurantFilterService _filterService;
@@ -28,7 +31,7 @@ namespace RestaurantPicker.Views
         public string SelectedFoodType { get; private set; }
         public bool IsRandomCategory { get; private set; }
 
-        public CategorySelectForm(int minMealHour, int maxMealHour)
+        public CategorySelectForm(int minMealHour, int maxMealHour, string mealTimeType = "lunch")
         {
             InitializeComponent();
             _minMealHour = minMealHour;
@@ -245,7 +248,7 @@ namespace RestaurantPicker.Views
                 IsRandomCategory = true;
             }
 
-            using var swipeForm = new SwipeForm(_minMealHour, _maxMealHour, _selectedFoodTypes.ToList(), IsRandomCategory);
+            using var swipeForm = new SwipeForm(_minMealHour, _maxMealHour, _selectedFoodTypes.ToList(), IsRandomCategory, _mealTimeType);
             if (swipeForm.ShowDialog() == DialogResult.OK)
             {
                 DialogResult = DialogResult.OK;

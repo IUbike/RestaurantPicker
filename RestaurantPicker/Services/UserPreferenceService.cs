@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using RestaurantPicker.Models;
 
@@ -7,7 +9,7 @@ namespace RestaurantPicker.Services
 {
     /// <summary>
     /// 使用者偏好服務
-    /// 負責讀寫 user_preferences.json，管理收藏和封鎖清單
+    /// 負責讀寫 user_preferences.json，管理收藏、封鎖清單和用餐紀錄
     /// </summary>
     public class UserPreferenceService
     {
@@ -156,6 +158,113 @@ namespace RestaurantPicker.Services
         public bool IsBlocked(int restaurantId)
         {
             return _userPreference.IsBlocked(restaurantId);
+        }
+
+        /// <summary>
+        /// 新增用餐紀錄
+        /// </summary>
+        public void AddMealRecord(MealRecord record)
+        {
+            if (record != null)
+            {
+                if (record.Id == 0)
+                {
+                    // 自增 ID
+                    record.Id = (_userPreference.MealHistory.Count > 0 
+                        ? _userPreference.MealHistory.Max(m => m.Id) 
+                        : 0) + 1;
+                }
+                _userPreference.MealHistory.Add(record);
+                SavePreferences(_userPreference);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 新增用餐紀錄 Id={record.Id} RestaurantId={record.RestaurantId} MealTime={record.MealTime} CreatedAt={record.CreatedAt}");
+            }
+        }
+
+        /// <summary>
+        /// 更新用餐紀錄的評分
+        /// </summary>
+        public void UpdateMealRating(int recordId, int rating)
+        {
+            var record = _userPreference.MealHistory.FirstOrDefault(m => m.Id == recordId);
+            if (record != null)
+            {
+                record.Rating = rating;
+                record.HasRating = true;
+                SavePreferences(_userPreference);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 更新用餐紀錄評分 Id={recordId} Rating={rating}");
+            }
+        }
+
+        /// <summary>
+        /// 取得今日的所有用餐紀錄
+        /// </summary>
+        public List<MealRecord> GetMealRecordsForToday()
+        {
+            var today = DateTime.Now.Date;
+            return _userPreference.MealHistory
+                .Where(m => m.MealDate.Date == today)
+                .ToList();
+        }
+
+        /// <summary>
+        /// 取得特定餐廳的所有用餐紀錄
+        /// </summary>
+        public List<MealRecord> GetMealRecordsByRestaurant(int restaurantId)
+        {
+            return _userPreference.MealHistory
+                .Where(m => m.RestaurantId == restaurantId)
+                .ToList();
+        }
+
+        /// <summary>
+        /// 取得特定餐廳的統計信息
+        /// 返回 (造訪次數, 平均評分)
+        /// </summary>
+        public (int visitCount, double averageRating) GetRestaurantStats(int restaurantId)
+        {
+            var records = GetMealRecordsByRestaurant(restaurantId);
+            if (records.Count == 0)
+                return (0, 0.0);
+
+            var ratedRecords = records.Where(m => m.HasRating).ToList();
+            if (ratedRecords.Count == 0)
+                return (records.Count, 0.0);
+
+            double avgRating = ratedRecords.Average(m => m.Rating);
+            return (records.Count, avgRating);
+        }
+
+        /// <summary>
+        /// 取得特定時段今天的用餐紀錄
+        /// </summary>
+        public MealRecord? GetMealRecordForTimeSlot(string mealTime)
+        {
+            var todayRecords = GetMealRecordsForToday();
+            return todayRecords.FirstOrDefault(m => m.MealTime == mealTime);
+        }
+
+        /// <summary>
+        /// 刪除用餐紀錄
+        /// </summary>
+        public void DeleteMealRecord(int recordId)
+        {
+            var record = _userPreference.MealHistory.FirstOrDefault(m => m.Id == recordId);
+            if (record != null)
+            {
+                _userPreference.MealHistory.Remove(record);
+                SavePreferences(_userPreference);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] 刪除用餐紀錄 Id={recordId}");
+            }
+        }
+
+        /// <summary>
+        /// 重置所有使用者偏好並寫入空檔
+        /// </summary>
+        public void ResetPreferences()
+        {
+            _userPreference = new UserPreference();
+            SavePreferences(_userPreference);
+            System.Diagnostics.Debug.WriteLine("[DEBUG] 已重置使用者偏好（已清除所有紀錄）");
         }
     }
 }

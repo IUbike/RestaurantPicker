@@ -1,4 +1,5 @@
 {
   "FavoriteRestaurantIds": [],
-  "BlockedRestaurantIds": []
+  "BlockedRestaurantIds": [],
+  "MealHistory": []
 }

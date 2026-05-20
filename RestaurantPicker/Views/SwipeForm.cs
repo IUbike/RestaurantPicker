@@ -19,6 +19,9 @@ namespace RestaurantPicker.Views
         private bool _isRandomCategory;
         private readonly List<string> _selectedFoodTypes;
 
+        // 用餐時段類型：breakfast/lunch/dinner（從 CategorySelectForm 傳入）
+        private string _mealTimeType = "lunch";
+
         // 服務層
         private IRestaurantRepository _restaurantRepository;
         private RestaurantFilterService _filterService;
@@ -49,7 +52,7 @@ namespace RestaurantPicker.Views
         {
         }
 
-        public SwipeForm(int minMealHour, int maxMealHour, List<string> selectedFoodTypes, bool isRandomCategory)
+        public SwipeForm(int minMealHour, int maxMealHour, List<string> selectedFoodTypes, bool isRandomCategory, string mealTimeType = "lunch")
         {
             InitializeComponent();
             _minMealHour = Math.Clamp(minMealHour, 0, 23);
@@ -57,6 +60,7 @@ namespace RestaurantPicker.Views
             _isRandomCategory = isRandomCategory;
             _selectedFoodTypes = selectedFoodTypes ?? new List<string>();
             _foodType = _selectedFoodTypes.FirstOrDefault();
+            _mealTimeType = mealTimeType;  // 記錄用餐時段類型
 
             this.Text = "選擇餐廳";
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -145,19 +149,46 @@ namespace RestaurantPicker.Views
             if (string.IsNullOrWhiteSpace(imageFileName))
                 return null;
 
-            string imagePath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "Assets",
-                "images",
-                imageFileName
-            );
+            try
+            {
+                string imagesDir = Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "Assets",
+                    "images"
+                );
 
-            if (!File.Exists(imagePath))
-                return null;
+                // 1. 先嘗試精確文件名匹配
+                string imagePath = Path.Combine(imagesDir, imageFileName);
+                if (File.Exists(imagePath))
+                {
+                    using var fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var temp = Image.FromStream(fs);
+                    return new Bitmap(temp);
+                }
 
-            using var fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var temp = Image.FromStream(fs);
-            return new Bitmap(temp);
+                // 2. 若精確匹配失敗，嘗試去掉前導零的版本
+                // 例如：restaurant_01.jpg → restaurant_1.jpg
+                if (imageFileName.Contains("restaurant_") && imageFileName.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
+                {
+                    string withoutZero = System.Text.RegularExpressions.Regex.Replace(imageFileName, @"restaurant_0+(\d+)\.jpg", "restaurant_$1.jpg", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (withoutZero != imageFileName)
+                    {
+                        imagePath = Path.Combine(imagesDir, withoutZero);
+                        if (File.Exists(imagePath))
+                        {
+                            using var fs = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            using var temp = Image.FromStream(fs);
+                            return new Bitmap(temp);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"載入圖片失敗 {imageFileName}: {ex.Message}");
+            }
+
+            return null;
         }
 
         private void SetRestaurantImage(PictureBox pictureBox, Restaurant restaurant)
@@ -235,7 +266,7 @@ namespace RestaurantPicker.Views
         }
 
         /// <summary>
-        /// 在 UI 上顯示左右兩家餐廳的完整資訊
+        /// 在 UI 上顯示左右兩家餐廳的完整資訊（含歷史統計）
         /// </summary>
         private void DisplayRestaurants()
         {
@@ -243,11 +274,21 @@ namespace RestaurantPicker.Views
             if (_swipeMatchService.LeftRestaurant != null)
             {
                 var left = _swipeMatchService.LeftRestaurant;
+                var (leftVisitCount, leftAvgRating) = _preferenceService.GetRestaurantStats(left.Id);
+
                 lblLeftName.Text = left.Name;
                 lblLeftPhone.Text = $"電話: {left.Phone}";
                 lblLeftHours.Text = $"營業: {left.BusinessHours}";
                 lblLeftFeature.Text = $"特色: {left.Feature}";
                 lblLeftFoodType.Text = $"種類: {string.Join(", ", left.FoodTypes)}";
+
+                // 添加歷史統計
+                if (leftVisitCount > 0)
+                {
+                    string ratingDisplay = leftAvgRating > 0 ? $" ⭐ {leftAvgRating:F1}" : " (未評分)";
+                    lblLeftName.Text += $" (去過 {leftVisitCount} 次{ratingDisplay})";
+                }
+
                 SetRestaurantImage(picLeftImage, left);
             }
 
@@ -255,11 +296,21 @@ namespace RestaurantPicker.Views
             if (_swipeMatchService.RightRestaurant != null)
             {
                 var right = _swipeMatchService.RightRestaurant;
+                var (rightVisitCount, rightAvgRating) = _preferenceService.GetRestaurantStats(right.Id);
+
                 lblRightName.Text = right.Name;
                 lblRightPhone.Text = $"電話: {right.Phone}";
                 lblRightHours.Text = $"營業: {right.BusinessHours}";
                 lblRightFeature.Text = $"特色: {right.Feature}";
                 lblRightFoodType.Text = $"種類: {string.Join(", ", right.FoodTypes)}";
+
+                // 添加歷史統計
+                if (rightVisitCount > 0)
+                {
+                    string ratingDisplay = rightAvgRating > 0 ? $" ⭐ {rightAvgRating:F1}" : " (未評分)";
+                    lblRightName.Text += $" (去過 {rightVisitCount} 次{ratingDisplay})";
+                }
+
                 SetRestaurantImage(picRightImage, right);
             }
 
@@ -312,7 +363,8 @@ namespace RestaurantPicker.Views
                 return;
             }
 
-            using var resultForm = new ResultForm(finalRestaurant);
+            // 將結果視為序列填入今日六格（左到右，上到下）
+            using var resultForm = new ResultForm(finalRestaurant, "sequential");
             if (resultForm.ShowDialog() == DialogResult.OK)
             {
                 this.DialogResult = DialogResult.OK;

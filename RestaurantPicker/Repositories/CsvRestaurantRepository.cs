@@ -73,6 +73,20 @@ namespace RestaurantPicker.Repositories
         /// </summary>
         public Restaurant GetById(int id)
         {
+            // 如果尚未載入，嘗試載入一次，以確保可以讀取到資料
+            if (_restaurants == null || _restaurants.Count == 0)
+            {
+                try
+                {
+                    LoadAll();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"載入餐廳資料失敗: {ex.Message}");
+                    return null;
+                }
+            }
+
             return _restaurants.FirstOrDefault(r => r.Id == id);
         }
 

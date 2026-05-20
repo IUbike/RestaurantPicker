@@ -42,6 +42,7 @@ namespace RestaurantPicker.Services
                 RightRestaurant = null;
                 _candidatePool.Clear();
                 _eliminatedRestaurants.Clear();
+                System.Diagnostics.Debug.WriteLine("[DEBUG] SwipeMatchService.Initialize -> no restaurants provided.");
                 return;
             }
 
@@ -55,6 +56,8 @@ namespace RestaurantPicker.Services
             // 其餘的放入候選池
             _candidatePool = shuffled.Skip(2).ToList();
             _eliminatedRestaurants.Clear();
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] SwipeMatchService.Initialize -> Left={(LeftRestaurant?.Id.ToString() ?? "null")}, Right={(RightRestaurant?.Id.ToString() ?? "null")}, CandidateCount={_candidatePool.Count}");
         }
 
         /// <summary>
@@ -68,6 +71,8 @@ namespace RestaurantPicker.Services
             if (LeftRestaurant == null || RightRestaurant == null)
                 return false;
 
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] SelectLeft -> keeping Left Id={LeftRestaurant.Id}, eliminating Right Id={RightRestaurant.Id}");
+
             // 淘汰右邊
             _eliminatedRestaurants.Add(RightRestaurant);
 
@@ -76,11 +81,13 @@ namespace RestaurantPicker.Services
             {
                 RightRestaurant = _candidatePool[0];
                 _candidatePool.RemoveAt(0);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] SelectLeft -> new Right Id={(RightRestaurant?.Id.ToString() ?? "null")}, CandidateLeft={_candidatePool.Count}");
                 return true;
             }
             else
             {
                 // 候選池用完，RightRestaurant 變為 null
+                System.Diagnostics.Debug.WriteLine("[DEBUG] SelectLeft -> candidate pool empty, Right set to null");
                 RightRestaurant = null;
                 return false;
             }
@@ -97,6 +104,8 @@ namespace RestaurantPicker.Services
             if (LeftRestaurant == null || RightRestaurant == null)
                 return false;
 
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] SelectRight -> keeping Right Id={RightRestaurant.Id}, eliminating Left Id={LeftRestaurant.Id}");
+
             // 淘汰左邊
             _eliminatedRestaurants.Add(LeftRestaurant);
 
@@ -105,11 +114,13 @@ namespace RestaurantPicker.Services
             {
                 LeftRestaurant = _candidatePool[0];
                 _candidatePool.RemoveAt(0);
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] SelectRight -> new Left Id={(LeftRestaurant?.Id.ToString() ?? "null")}, CandidateLeft={_candidatePool.Count}");
                 return true;
             }
             else
             {
                 // 候選池用完，LeftRestaurant 變為 null
+                System.Diagnostics.Debug.WriteLine("[DEBUG] SelectRight -> candidate pool empty, Left set to null");
                 LeftRestaurant = null;
                 return false;
             }
@@ -132,16 +143,26 @@ namespace RestaurantPicker.Services
         {
             // 優先回傳還存在的單家餐廳
             if (LeftRestaurant != null && RightRestaurant == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] GetFinalResult -> returning Left Id={LeftRestaurant.Id}");
                 return LeftRestaurant;
+            }
 
             if (RightRestaurant != null && LeftRestaurant == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] GetFinalResult -> returning Right Id={RightRestaurant.Id}");
                 return RightRestaurant;
+            }
 
             // 如果左右都還在，代表比對還沒結束
             if (LeftRestaurant != null && RightRestaurant != null)
+            {
+                System.Diagnostics.Debug.WriteLine("[DEBUG] GetFinalResult -> both Left and Right exist, no final result yet");
                 return null;
+            }
 
             // 都沒有了，代表沒有初始化或所有餐廳都被淘汰了
+            System.Diagnostics.Debug.WriteLine("[DEBUG] GetFinalResult -> no restaurants available");
             return null;
         }
 
@@ -178,6 +199,7 @@ namespace RestaurantPicker.Services
             RightRestaurant = null;
             _candidatePool.Clear();
             _eliminatedRestaurants.Clear();
+            System.Diagnostics.Debug.WriteLine("[DEBUG] SwipeMatchService.Reset called");
         }
     }
 }

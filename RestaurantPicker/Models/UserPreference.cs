@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace RestaurantPicker.Models
 {
     /// <summary>
-    /// 使用者的偏好設定（收藏、封鎖清單）
+    /// 使用者的偏好設定（收藏、封鎖清單、用餐紀錄）
     /// </summary>
     public class UserPreference
     {
@@ -12,16 +12,22 @@ namespace RestaurantPicker.Models
         /// 收藏的餐廳 ID 清單
         /// </summary>
         public List<int> FavoriteRestaurantIds { get; set; } = new List<int>();
-        
+
         /// <summary>
         /// 被封鎖的餐廳 ID 清單（使用者不想再看到的餐廳）
         /// </summary>
         public List<int> BlockedRestaurantIds { get; set; } = new List<int>();
 
+        /// <summary>
+        /// 用餐紀錄清單
+        /// </summary>
+        public List<MealRecord> MealHistory { get; set; } = new List<MealRecord>();
+
         public UserPreference()
         {
             FavoriteRestaurantIds = new List<int>();
             BlockedRestaurantIds = new List<int>();
+            MealHistory = new List<MealRecord>();
         }
 
         /// <summary>
