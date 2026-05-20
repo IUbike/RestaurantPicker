@@ -66,6 +66,13 @@ namespace RestaurantPicker.Views
 
         private void ApplyMainLayout()
         {
+            // 避免在 InitializeComponent 尚未完成時觸發 Resize 造成 NullReference
+            if (lblTitle == null || btnStart == null || btnTodayMeal == null ||
+                btnManageRestaurant == null || btnManagePreference == null || btnReset == null)
+            {
+                return;
+            }
+
             // 主頁控件置中與等距
             int buttonWidth = Math.Clamp((int)(ClientSize.Width * 0.42), 420, 560);
             int buttonHeight = 96;
@@ -148,7 +155,7 @@ namespace RestaurantPicker.Views
                 if (ratingLabel != null && button != null)
                 {
                     ratingLabel.Location = new Point(10, button.Bottom + 4);
-                    ratingLabel.Size = new Size(slotWidth - 20, 22);
+                    ratingLabel.Size = new Size(slotWidth - 20, 30);
                 }
             }
 
@@ -516,8 +523,8 @@ namespace RestaurantPicker.Views
                 // 評分文本或按鈕
                 var ratingLabel = new Label
                 {
-                    Location = new Point(10, 170),
-                    Size = new Size(220, 20),
+                    Location = new Point(10, 166),
+                    Size = new Size(220, 28),
                     Font = new Font("微軟正黑體", 9F),
                     Text = "",
                     TextAlign = ContentAlignment.MiddleCenter

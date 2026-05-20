@@ -77,27 +77,6 @@ namespace RestaurantPicker.Views
             lblTitle.Text = "不知道吃什麼？";
             lblTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
-            // btnStart
-            // 
-            btnStart.BackColor = Color.Transparent;
-            btnStart.BackgroundImage = Properties.Resources.icons_start1;
-            btnStart.BackgroundImageLayout = ImageLayout.Stretch;
-            btnStart.FlatAppearance.BorderSize = 0;
-            btnStart.FlatAppearance.MouseDownBackColor = Color.Transparent;
-            btnStart.FlatAppearance.MouseOverBackColor = Color.Transparent;
-            btnStart.FlatStyle = FlatStyle.Flat;
-            btnStart.Font = new Font("微軟正黑體", 18F, FontStyle.Bold, GraphicsUnit.Point, 136);
-            btnStart.ForeColor = Color.White;
-            btnStart.Location = new Point(327, 273);
-            btnStart.Margin = new Padding(7);
-            btnStart.Name = "btnStart";
-            btnStart.Size = new Size(467, 138);
-            btnStart.TabIndex = 1;
-            btnStart.Text = "  ";
-            btnStart.UseMnemonic = false;
-            btnStart.UseVisualStyleBackColor = false;
-            btnStart.Click += btnStart_Click;
-            // 
             // btnTodayMeal
             // 
             btnTodayMeal.BackColor = Color.Violet;
@@ -125,6 +104,27 @@ namespace RestaurantPicker.Views
             btnReset.Text = "重置紀錄 (清除所有使用者資料)";
             btnReset.UseVisualStyleBackColor = false;
             btnReset.Click += btnReset_Click;
+            // 
+            // btnStart
+            // 
+            btnStart.BackColor = Color.Transparent;
+            btnStart.BackgroundImage = Properties.Resources.icons_start1;
+            btnStart.BackgroundImageLayout = ImageLayout.Stretch;
+            btnStart.FlatAppearance.BorderSize = 0;
+            btnStart.FlatAppearance.MouseDownBackColor = Color.Transparent;
+            btnStart.FlatAppearance.MouseOverBackColor = Color.Transparent;
+            btnStart.FlatStyle = FlatStyle.Flat;
+            btnStart.Font = new Font("微軟正黑體", 18F, FontStyle.Bold, GraphicsUnit.Point, 136);
+            btnStart.ForeColor = Color.Transparent;
+            btnStart.Location = new Point(327, 273);
+            btnStart.Margin = new Padding(7);
+            btnStart.Name = "btnStart";
+            btnStart.Size = new Size(467, 138);
+            btnStart.TabIndex = 1;
+            btnStart.Text = "  ";
+            btnStart.UseMnemonic = false;
+            btnStart.UseVisualStyleBackColor = false;
+            btnStart.Click += btnStart_Click;
             // 
             // MainForm
             // 
