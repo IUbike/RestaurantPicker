@@ -29,6 +29,15 @@ namespace RestaurantPicker.Views
             InitializeComponent();
             this.Text = "隨機餐廳選擇系統";
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.MaximizeBox = true;
+            this.MinimizeBox = true;
+            this.MinimumSize = new Size(960, 600);
+            this.ClientSize = new Size(1280, 720);
+            this.BackColor = Color.FromArgb(250, 241, 224);
+            this.BackgroundImage = LoadAssetImage("back1.jpg");
+            this.BackgroundImageLayout = ImageLayout.Zoom;
+            lblTitle.Visible = false;
 
             // 初始化服務
             string csvPath = System.IO.Path.Combine(
@@ -62,6 +71,10 @@ namespace RestaurantPicker.Views
         private void MainForm_Resize(object? sender, EventArgs e)
         {
             ApplyMainLayout();
+            if (_todayMealPanel?.Visible == true)
+            {
+                RefreshTodayMealPanel();
+            }
         }
 
         private void ApplyMainLayout()
@@ -73,28 +86,35 @@ namespace RestaurantPicker.Views
                 return;
             }
 
-            // 主頁控件置中與等距
-            int buttonWidth = Math.Clamp((int)(ClientSize.Width * 0.42), 420, 560);
-            int buttonHeight = 96;
-            int startHeight = 128;
+            // 主頁控件依目前視窗高度排版，避免在小螢幕或高 DPI 環境被裁切。
+            int horizontalPadding = Math.Clamp(ClientSize.Width / 10, 48, 120);
+            int buttonWidth = Math.Clamp(ClientSize.Width - (horizontalPadding * 2), 360, 520);
+            int gap = Math.Clamp(ClientSize.Height / 60, 8, 16);
+            int titleTop = Math.Clamp(ClientSize.Height / 14, 24, 60);
+            int buttonHeight = Math.Clamp(ClientSize.Height / 8, 58, 88);
+            int startHeight = Math.Clamp(ClientSize.Height / 6, 78, 118);
+            int resetHeight = Math.Clamp(ClientSize.Height / 14, 36, 46);
             int x = (ClientSize.Width - buttonWidth) / 2;
 
-            lblTitle.Location = new Point((ClientSize.Width - lblTitle.Width) / 2, 60);
+            lblTitle.Location = new Point((ClientSize.Width - lblTitle.Width) / 2, titleTop);
 
             btnStart.Size = new Size(buttonWidth, startHeight);
-            btnStart.Location = new Point(x, 240);
+            int controlsHeight = startHeight + (buttonHeight * 3) + resetHeight + (gap * 4);
+            int maxFirstButtonTop = Math.Max(96, ClientSize.Height - controlsHeight - 24);
+            int firstButtonTop = Math.Clamp((int)(ClientSize.Height * 0.34), 130, maxFirstButtonTop);
+            btnStart.Location = new Point(x, firstButtonTop);
 
             btnTodayMeal.Size = new Size(buttonWidth, buttonHeight);
-            btnTodayMeal.Location = new Point(x, btnStart.Bottom + 16);
+            btnTodayMeal.Location = new Point(x, btnStart.Bottom + gap);
 
             btnManageRestaurant.Size = new Size(buttonWidth, buttonHeight);
-            btnManageRestaurant.Location = new Point(x, btnTodayMeal.Bottom + 14);
+            btnManageRestaurant.Location = new Point(x, btnTodayMeal.Bottom + gap);
 
             btnManagePreference.Size = new Size(buttonWidth, buttonHeight);
-            btnManagePreference.Location = new Point(x, btnManageRestaurant.Bottom + 14);
+            btnManagePreference.Location = new Point(x, btnManageRestaurant.Bottom + gap);
 
-            btnReset.Size = new Size(buttonWidth, 46);
-            btnReset.Location = new Point(x, btnManagePreference.Bottom + 14);
+            btnReset.Size = new Size(buttonWidth, resetHeight);
+            btnReset.Location = new Point(x, btnManagePreference.Bottom + gap);
 
             ApplyTodayMealPanelLayout();
         }
@@ -104,24 +124,25 @@ namespace RestaurantPicker.Views
             if (_todayMealPanel == null)
                 return;
 
-            // 讓今日面板跟著主視窗置中與放大
-            int panelWidth = Math.Clamp(ClientSize.Width - 80, 900, 1120);
-            int panelHeight = Math.Clamp(ClientSize.Height - 180, 620, 820);
+            // 今日面板不可大於目前視窗，否則在小螢幕或高 DPI 環境會被裁切。
+            int outerPadding = Math.Clamp(ClientSize.Width / 34, 16, 32);
+            int panelWidth = Math.Max(280, ClientSize.Width - (outerPadding * 2));
+            int panelHeight = Math.Max(320, ClientSize.Height - (outerPadding * 2));
             _todayMealPanel.Size = new Size(panelWidth, panelHeight);
-            _todayMealPanel.Location = new Point((ClientSize.Width - panelWidth) / 2, 120);
+            _todayMealPanel.Location = new Point(outerPadding, outerPadding);
 
-            int gridPadding = 20;
-            int gapX = 18;
-            int gapY = 18;
-            int cols = 3;
-            int rows = 2;
-            int reservedBottom = 84; // 返回按鈕區
+            int gridPadding = 16;
+            int gapX = 16;
+            int gapY = 16;
+            int cols = panelWidth >= 820 ? 3 : panelWidth >= 520 ? 2 : 1;
+            int rows = (int)Math.Ceiling(6d / cols);
+            int reservedBottom = 70; // 返回按鈕區
 
-            int usableWidth = panelWidth - (gridPadding * 2);
-            int usableHeight = panelHeight - gridPadding - reservedBottom;
+            int usableWidth = panelWidth - (gridPadding * 2) - SystemInformation.VerticalScrollBarWidth;
+            int viewportHeight = panelHeight - gridPadding - reservedBottom;
 
             int slotWidth = (usableWidth - (gapX * (cols - 1))) / cols;
-            int slotHeight = (usableHeight - (gapY * (rows - 1))) / rows;
+            int slotHeight = Math.Clamp((viewportHeight - (gapY * (rows - 1))) / rows, 170, 240);
 
             for (int idx = 0; idx < 6; idx++)
             {
@@ -147,7 +168,7 @@ namespace RestaurantPicker.Views
                 var ratingLabel = slotPanel.Controls.Count > 2 ? slotPanel.Controls[2] as Label : null;
                 if (button != null)
                 {
-                    int buttonHeight = Math.Max(96, slotHeight - 78);
+                    int buttonHeight = Math.Max(92, slotHeight - 78);
                     button.Location = new Point(10, 38);
                     button.Size = new Size(slotWidth - 20, buttonHeight);
                 }
@@ -159,12 +180,17 @@ namespace RestaurantPicker.Views
                 }
             }
 
+            int gridHeight = gridPadding + rows * slotHeight + (rows - 1) * gapY;
+            int backTop = Math.Max(gridHeight + 14, panelHeight - 58);
+
             // 返回按鈕置中
             var btnBack = _todayMealPanel.Controls["btnBackToHome"] as Button;
             if (btnBack != null)
             {
-                btnBack.Location = new Point((_todayMealPanel.Width - btnBack.Width) / 2, _todayMealPanel.Height - btnBack.Height - 18);
+                btnBack.Location = new Point((_todayMealPanel.Width - btnBack.Width) / 2, backTop);
             }
+
+            _todayMealPanel.AutoScrollMinSize = new Size(0, backTop + 58);
         }
 
         private void ConfigureStartButton()
@@ -179,10 +205,11 @@ namespace RestaurantPicker.Views
                 btnStart.FlatAppearance.BorderSize = 0;
                 btnStart.FlatAppearance.MouseDownBackColor = Color.Transparent;
                 btnStart.FlatAppearance.MouseOverBackColor = Color.Transparent;
-                btnStart.BackColor = Color.White;  // 使用白色背景
+                btnStart.BackColor = Color.LightGray;
                 btnStart.ForeColor = Color.Black;
                 btnStart.FlatStyle = FlatStyle.Flat;
                 btnStart.Cursor = Cursors.Hand;
+                btnStart.BackgroundImage = null;
 
                 // 嘗試載入圖片
                 if (Resources.icons_start != null)
@@ -361,6 +388,7 @@ namespace RestaurantPicker.Views
             // 顯示今日餐廳面板
             _todayMealPanel.Visible = true;
             _todayMealPanel.BringToFront();
+            ApplyTodayMealPanelLayout();
 
             // 重新載入使用者偏好，確保顯示為最新紀錄
             _preferenceService.LoadPreferences();
@@ -384,6 +412,7 @@ namespace RestaurantPicker.Views
             }
 
             ApplyTodayMealPanelLayout();
+            RefreshTodayMealPanel();
         }
 
         private void btnReset_Click(object sender, EventArgs e)
@@ -422,7 +451,7 @@ namespace RestaurantPicker.Views
             _todayMealPanel.Visible = false;
 
             // 顯示主頁面控件
-            lblTitle.Visible = true;
+            lblTitle.Visible = false;
             btnStart.Visible = true;
             btnManageRestaurant.Visible = true;
             btnManagePreference.Visible = true;
@@ -472,6 +501,7 @@ namespace RestaurantPicker.Views
                 Size = new Size(840, 580),  // 增加高度以容納返回按鈕
                 BackColor = Color.WhiteSmoke,
                 BorderStyle = BorderStyle.FixedSingle,
+                AutoScroll = true,
                 Visible = false
             };
 
@@ -593,7 +623,8 @@ namespace RestaurantPicker.Views
                         if (image != null)
                         {
                             button.Image?.Dispose();
-                            button.Image = image;
+                            button.Image = CreateContainImage(image, button.Size);
+                            image.Dispose();
                             button.ImageAlign = ContentAlignment.MiddleCenter;
                             button.Text = "";
                         }
@@ -713,6 +744,49 @@ namespace RestaurantPicker.Views
             }
 
             return null;
+        }
+
+        private static Image? LoadAssetImage(string fileName)
+        {
+            try
+            {
+                string imagePath = System.IO.Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "Assets",
+                    fileName
+                );
+
+                if (!System.IO.File.Exists(imagePath))
+                    return null;
+
+                using var stream = new System.IO.FileStream(imagePath, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite);
+                using var image = Image.FromStream(stream);
+                return new Bitmap(image);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"載入首頁背景失敗: {ex.Message}");
+                return null;
+            }
+        }
+
+        private static Bitmap CreateContainImage(Image image, Size size)
+        {
+            var bitmap = new Bitmap(size.Width, size.Height);
+            using var graphics = Graphics.FromImage(bitmap);
+            graphics.Clear(Color.White);
+            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            graphics.SmoothingMode = SmoothingMode.HighQuality;
+            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+            float scale = Math.Min((float)size.Width / image.Width, (float)size.Height / image.Height);
+            int drawWidth = Math.Max(1, (int)(image.Width * scale));
+            int drawHeight = Math.Max(1, (int)(image.Height * scale));
+            int x = (size.Width - drawWidth) / 2;
+            int y = (size.Height - drawHeight) / 2;
+
+            graphics.DrawImage(image, new Rectangle(x, y, drawWidth, drawHeight));
+            return bitmap;
         }
 
         /// <summary>
