@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using RestaurantPicker.Models;
@@ -27,15 +28,30 @@ namespace RestaurantPicker.Views
             _preferenceService = new UserPreferenceService(preferencePath);
             _preferenceService.LoadPreferences();
 
-            Text = "管理收藏 / 封鎖清單";
-            StartPosition = FormStartPosition.CenterScreen;
+            this.StartPosition = FormStartPosition.CenterScreen;
             AcceptButton = btnClose;
             CancelButton = btnClose;
         }
 
         private void ManagePreferenceForm_Load(object sender, EventArgs e)
         {
+            ApplyLanguage();
             LoadData();
+        }
+
+        private void ApplyLanguage()
+        {
+            this.Text = LanguageManager.GetTranslation("preferenceTitle");
+            lblAll.Text = LanguageManager.GetTranslation("lblAll");
+            lblFavorites.Text = LanguageManager.GetTranslation("lblFavorites");
+            lblBlocked.Text = LanguageManager.GetTranslation("lblBlocked");
+            lblHint.Text = LanguageManager.GetTranslation("lblHint");
+            btnAddFavorite.Text = LanguageManager.GetTranslation("btnAddFavorite");
+            btnAddBlocked.Text = LanguageManager.GetTranslation("btnAddBlocked");
+            btnRemoveFavorite.Text = LanguageManager.GetTranslation("btnRemoveFavorite");
+            btnRemoveBlocked.Text = LanguageManager.GetTranslation("btnRemoveBlocked");
+
+            LanguageManager.ApplyFullButtonImage(btnClose, "icons_complete.png");
         }
 
         private void LoadData()
@@ -97,7 +113,11 @@ namespace RestaurantPicker.Views
             var id = GetSelectedRestaurantIdFromAll();
             if (!id.HasValue)
             {
-                MessageBox.Show("請先從左側選擇一家餐廳", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("selectLeftPrompt"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -112,7 +132,11 @@ namespace RestaurantPicker.Views
             var id = GetSelectedRestaurantIdFromAll();
             if (!id.HasValue)
             {
-                MessageBox.Show("請先從左側選擇一家餐廳", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("selectLeftPrompt"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -127,7 +151,11 @@ namespace RestaurantPicker.Views
             var id = GetSelectedRestaurantId(lstFavorites);
             if (!id.HasValue)
             {
-                MessageBox.Show("請先在『收藏清單』選擇要移除的餐廳", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("selectFavoritePrompt"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -140,7 +168,11 @@ namespace RestaurantPicker.Views
             var id = GetSelectedRestaurantId(lstBlocked);
             if (!id.HasValue)
             {
-                MessageBox.Show("請先在『封鎖清單』選擇要移除的餐廳", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("selectBlockedPrompt"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 

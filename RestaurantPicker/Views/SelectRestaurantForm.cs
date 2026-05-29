@@ -23,7 +23,7 @@ namespace RestaurantPicker.Views
 
         public SelectRestaurantForm(IRestaurantRepository restaurantRepository, UserPreferenceService preferenceService, string mealTimeType = "lunch")
         {
-            this.Text = "選擇餐廳";
+            this.Text = LanguageManager.GetTranslation("selectFormTitle");
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Size = new Size(600, 400);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -100,6 +100,9 @@ namespace RestaurantPicker.Views
 
             this.Controls.Add(_listBox);
             this.Controls.Add(buttonPanel);
+
+            LanguageManager.ApplyFullButtonImage(okButton, "icons_ok.png");
+            LanguageManager.ApplyFullButtonImage(cancelButton, "icons_cancel.png");
         }
 
         private void SelectRestaurantForm_Load(object sender, EventArgs e)
@@ -161,7 +164,11 @@ namespace RestaurantPicker.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"載入餐廳失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    (LanguageManager.CurrentLanguage == LanguageType.Chinese ? "載入餐廳失敗: " : "Failed to load restaurants: ") + ex.Message,
+                    LanguageManager.GetTranslation("resetFailedTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
     }

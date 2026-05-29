@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using RestaurantPicker.Models;
+using RestaurantPicker.Services;
 
 namespace RestaurantPicker.Views
 {
@@ -18,7 +19,7 @@ namespace RestaurantPicker.Views
         public RatingForm(Restaurant restaurant)
         {
             _restaurant = restaurant;
-            this.Text = "評分";
+            this.Text = LanguageManager.GetTranslation("ratingTitleText");
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Size = new Size(500, 380);  // 增大視窗尺寸以容納更大的星星
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -36,9 +37,10 @@ namespace RestaurantPicker.Views
             this.Controls.Clear();
 
             // 餐廳名稱標籤
+            string ratingPrefix = LanguageManager.GetTranslation("ratingTitleText");
             var nameLabel = new Label
             {
-                Text = $"評分：{_restaurant.Name}",
+                Text = $"{ratingPrefix}{_restaurant.Name}",
                 Font = new Font("微軟正黑體", 12F, FontStyle.Bold),
                 Left = 20,
                 Top = 20,
@@ -100,7 +102,7 @@ namespace RestaurantPicker.Views
             // 評分文本
             _ratingLabel = new Label
             {
-                Text = "未選擇",
+                Text = LanguageManager.GetTranslation("unselected"),
                 Font = new Font("微軟正黑體", 11F),
                 Left = 30,
                 Top = 175,
@@ -126,6 +128,7 @@ namespace RestaurantPicker.Views
             };
 
             this.Controls.Add(okButton);
+            LanguageManager.ApplyFullButtonImage(okButton, "icons_ok.png");
 
             // 取消按鈕
             var cancelButton = new Button
@@ -139,6 +142,7 @@ namespace RestaurantPicker.Views
             };
 
             this.Controls.Add(cancelButton);
+            LanguageManager.ApplyFullButtonImage(cancelButton, "icons_cancel.png");
         }
 
         private void RatingForm_Load(object sender, EventArgs e)
@@ -165,7 +169,9 @@ namespace RestaurantPicker.Views
 
             if (_ratingLabel != null)
             {
-                _ratingLabel.Text = _selectedRating > 0 ? $"{_selectedRating} 顆星" : "未選擇";
+                _ratingLabel.Text = _selectedRating > 0 
+                    ? $"{_selectedRating} {LanguageManager.GetTranslation("starText")}" 
+                    : LanguageManager.GetTranslation("unselected");
             }
         }
     }

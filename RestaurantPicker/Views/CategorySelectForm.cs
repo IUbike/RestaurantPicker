@@ -61,7 +61,22 @@ namespace RestaurantPicker.Views
 
         private void CategorySelectForm_Load(object sender, EventArgs e)
         {
+            ApplyLanguage();
             LoadAvailableCategories();
+        }
+
+        private void ApplyLanguage()
+        {
+            this.Text = LanguageManager.GetTranslation("categoryTitle");
+            rbSpecific.Text = LanguageManager.GetTranslation("selectCategory");
+            rbRandom.Text = LanguageManager.GetTranslation("randomCategory");
+            lblSelectedTitle.Text = LanguageManager.GetTranslation("lblSelectedTitle");
+
+            // Apply full-button images dynamically
+            LanguageManager.ApplyFullButtonImage(btnAddTag, "icons_add.png");
+            LanguageManager.ApplyFullButtonImage(btnClearTags, "icons_clear.png");
+            LanguageManager.ApplyFullButtonImage(btnNext, "icons_next.png");
+            LanguageManager.ApplyFullButtonImage(btnCancel, "icons_cancel.png");
         }
 
         private List<Restaurant> GetMealTimeAvailableRestaurants()
@@ -93,7 +108,11 @@ namespace RestaurantPicker.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"載入種類失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? $"載入種類失敗: {ex.Message}" : $"Failed to load food styles: {ex.Message}",
+                    LanguageManager.GetTranslation("resetFailedTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -115,7 +134,11 @@ namespace RestaurantPicker.Views
         {
             if (cbCategory.SelectedIndex < 0)
             {
-                MessageBox.Show("請先從清單選擇一個種類", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "請先從清單選擇一個種類" : "Please select a category from the list first",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -200,7 +223,7 @@ namespace RestaurantPicker.Views
                     }
                 }
 
-                lblCandidateCount.Text = $"候選餐廳數量：{candidateCount} 家";
+                lblCandidateCount.Text = LanguageManager.GetTranslation("candidatePrefix") + candidateCount + (LanguageManager.CurrentLanguage == LanguageType.Chinese ? " 家" : "");
 
                 if (rbSpecific.Checked && _selectedFoodTypes.Count > 0)
                 {
@@ -213,7 +236,7 @@ namespace RestaurantPicker.Views
             }
             catch
             {
-                lblCandidateCount.Text = "候選餐廳數量：計算失敗";
+                lblCandidateCount.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese ? "候選餐廳數量：計算失敗" : "Candidates: calculation failed";
                 lblCandidateCount.ForeColor = Color.DarkRed;
             }
         }
@@ -224,7 +247,11 @@ namespace RestaurantPicker.Views
             {
                 if (_selectedFoodTypes.Count == 0)
                 {
-                    MessageBox.Show("請先加入至少一個種類標籤", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        LanguageManager.GetTranslation("tagPrompt"),
+                        LanguageManager.GetTranslation("hintTitle"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -235,7 +262,11 @@ namespace RestaurantPicker.Views
 
                 if (candidateCount < 2)
                 {
-                    MessageBox.Show("目前候選餐廳不足 2 家，請調整標籤。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        LanguageManager.GetTranslation("insufficientCandidates"),
+                        LanguageManager.GetTranslation("hintTitle"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 

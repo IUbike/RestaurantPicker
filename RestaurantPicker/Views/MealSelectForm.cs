@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Forms;
+using System.Drawing;
+using RestaurantPicker.Services;
 
 namespace RestaurantPicker.Views
 {
@@ -30,6 +28,7 @@ namespace RestaurantPicker.Views
         private void MealSelectForm_Load(object sender, EventArgs e)
         {
             LoadTimeOptions();
+            ApplyLanguage();
 
             // 依裝置現在時間預設區間
             var nowHour = DateTime.Now.Hour;
@@ -51,6 +50,22 @@ namespace RestaurantPicker.Views
                 SetTimeRange("17:00", "21:00");
                 SelectedMealTimeType = "dinner";
             }
+        }
+
+        private void ApplyLanguage()
+        {
+            this.Text = LanguageManager.GetTranslation("mealTitle");
+            lblTitle.Text = LanguageManager.GetTranslation("mealTitle");
+            groupBoxMealTime.Text = LanguageManager.GetTranslation("mealPreset");
+            rbBreakfast.Text = LanguageManager.GetTranslation("breakfast");
+            rbLunch.Text = LanguageManager.GetTranslation("lunch");
+            rbDinner.Text = LanguageManager.GetTranslation("dinner");
+            lblRangeTitle.Text = LanguageManager.GetTranslation("mealRange");
+            lblHint.Text = LanguageManager.GetTranslation("mealHint");
+
+            // Apply full-button images dynamically
+            LanguageManager.ApplyFullButtonImage(btnNext, "icons_next.png");
+            LanguageManager.ApplyFullButtonImage(btnCancel, "icons_cancel.png");
         }
 
         private void LoadTimeOptions()
@@ -112,13 +127,21 @@ namespace RestaurantPicker.Views
         {
             if (!TryGetSelectedTimes(out var minTime, out var maxTime))
             {
-                MessageBox.Show("請選擇有效的時間範圍", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("invalidTimeRange"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
 
             if (minTime > maxTime)
             {
-                MessageBox.Show("最小時間不可大於最大時間", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("minMaxTimeError"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
 

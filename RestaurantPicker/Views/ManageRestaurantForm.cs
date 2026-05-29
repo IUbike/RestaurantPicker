@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using RestaurantPicker.Models;
 using RestaurantPicker.Repositories;
+using RestaurantPicker.Services;
 
 namespace RestaurantPicker.Views
 {
@@ -15,8 +16,31 @@ namespace RestaurantPicker.Views
         {
             InitializeComponent();
             _restaurantRepository = restaurantRepository;
-            Text = "管理餐廳（新增）";
-            StartPosition = FormStartPosition.CenterScreen;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            ApplyLanguage();
+        }
+
+        private void ApplyLanguage()
+        {
+            this.Text = LanguageManager.GetTranslation("manageTitle");
+            lblTitle.Text = LanguageManager.GetTranslation("manageTitle");
+            lblName.Text = LanguageManager.GetTranslation("lblName");
+            lblPriceRange.Text = LanguageManager.GetTranslation("lblPriceRange");
+            lblFoodTypes.Text = LanguageManager.GetTranslation("lblFoodTypes");
+            lblCuisineStyle.Text = LanguageManager.GetTranslation("lblCuisineStyle");
+            lblPurposes.Text = LanguageManager.GetTranslation("lblPurposes");
+            lblFeature.Text = LanguageManager.GetTranslation("lblFeature");
+            lblPhone.Text = LanguageManager.GetTranslation("lblPhone");
+            lblBusinessHours.Text = LanguageManager.GetTranslation("lblBusinessHours");
+            lblAddress.Text = LanguageManager.GetTranslation("lblAddress");
+            lblImageFileName.Text = LanguageManager.GetTranslation("lblImageFileName");
+            lblMealTime.Text = LanguageManager.GetTranslation("lblMealTime");
+            chkBreakfast.Text = LanguageManager.GetTranslation("chkBreakfast");
+            chkLunch.Text = LanguageManager.GetTranslation("chkLunch");
+            chkDinner.Text = LanguageManager.GetTranslation("chkDinner");
+
+            LanguageManager.ApplyFullButtonImage(btnSave, "icons_save.png");
+            LanguageManager.ApplyFullButtonImage(btnCancel, "icons_cancel.png");
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -25,7 +49,11 @@ namespace RestaurantPicker.Views
             {
                 if (string.IsNullOrWhiteSpace(txtName.Text))
                 {
-                    MessageBox.Show("請輸入餐廳名稱", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        LanguageManager.GetTranslation("inputNamePrompt"),
+                        LanguageManager.GetTranslation("hintTitle"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     txtName.Focus();
                     return;
                 }
@@ -33,7 +61,11 @@ namespace RestaurantPicker.Views
                 var foodTypes = ParseMultiValueText(txtFoodTypes.Text);
                 if (foodTypes.Count == 0)
                 {
-                    MessageBox.Show("請至少輸入一個食物種類", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        LanguageManager.GetTranslation("inputFoodTypePrompt"),
+                        LanguageManager.GetTranslation("hintTitle"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     txtFoodTypes.Focus();
                     return;
                 }
@@ -62,13 +94,21 @@ namespace RestaurantPicker.Views
                 _restaurantRepository.Add(newRestaurant);
                 _restaurantRepository.SaveAll(restaurants);
 
-                MessageBox.Show("餐廳新增成功", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("saveSuccess"),
+                    LanguageManager.GetTranslation("resetDoneTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"新增失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("saveFailed") + ex.Message,
+                    LanguageManager.GetTranslation("resetFailedTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 

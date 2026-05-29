@@ -87,7 +87,17 @@ namespace RestaurantPicker.Views
 
         private void SwipeForm_Load(object sender, EventArgs e)
         {
+            ApplyLanguage();
             InitializeSwipeCards();
+        }
+
+        private void ApplyLanguage()
+        {
+            this.Text = LanguageManager.GetTranslation("swipeTitle");
+
+            // Apply full-button images dynamically (LanguageManager handles English automatic _e naming!)
+            LanguageManager.ApplyFullButtonImage(btnSelectLeft, "icons_left.png");
+            LanguageManager.ApplyFullButtonImage(btnSelectRight, "icons_right.png");
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -109,20 +119,15 @@ namespace RestaurantPicker.Views
 
         private void UpdateFilterSummaryTitle()
         {
-            if (_isRandomCategory)
-            {
-                lblTitle.Text = $"{_minMealHour:00}:00~{_maxMealHour:00}:00｜隨機種類（←/→ 可快速選擇）";
-                return;
-            }
+            string typeStr = _isRandomCategory
+                ? LanguageManager.GetTranslation("randomCategory")
+                : (_selectedFoodTypes.Count > 0 ? string.Join(", ", _selectedFoodTypes) : LanguageManager.GetTranslation("selectCategory"));
+            
+            string hint = LanguageManager.CurrentLanguage == LanguageType.Chinese
+                ? "（←/→ 可快速選擇）"
+                : " (←/→ keys to select)";
 
-            if (_selectedFoodTypes.Count > 0)
-            {
-                lblTitle.Text = $"{_minMealHour:00}:00~{_maxMealHour:00}:00｜{string.Join("、", _selectedFoodTypes)}（←/→ 可快速選擇）";
-            }
-            else
-            {
-                lblTitle.Text = $"{_minMealHour:00}:00~{_maxMealHour:00}:00｜指定種類（←/→ 可快速選擇）";
-            }
+            lblTitle.Text = $"{_minMealHour:00}:00~{_maxMealHour:00}:00 | {typeStr}{hint}";
         }
 
         private Image CreatePlaceholderImage(Size size)
@@ -239,8 +244,8 @@ namespace RestaurantPicker.Views
                 if (filteredRestaurants.Count < 2)
                 {
                     MessageBox.Show(
-                        $"符合條件的餐廳不足 2 家。找到 {filteredRestaurants.Count} 家餐廳，無法進行選擇。",
-                        "提示",
+                        LanguageManager.GetTranslation("insufficientRestaurants", filteredRestaurants.Count),
+                        LanguageManager.GetTranslation("hintTitle"),
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information
                     );
@@ -255,8 +260,8 @@ namespace RestaurantPicker.Views
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    $"初始化失敗: {ex.Message}",
-                    "錯誤",
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? $"初始化失敗: {ex.Message}" : $"Initialization failed: {ex.Message}",
+                    LanguageManager.GetTranslation("resetFailedTitle"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );
@@ -277,16 +282,22 @@ namespace RestaurantPicker.Views
                 var (leftVisitCount, leftAvgRating) = _preferenceService.GetRestaurantStats(left.Id);
 
                 lblLeftName.Text = left.Name;
-                lblLeftPhone.Text = $"電話: {left.Phone}";
-                lblLeftHours.Text = $"營業: {left.BusinessHours}";
-                lblLeftFeature.Text = $"特色: {left.Feature}";
-                lblLeftFoodType.Text = $"種類: {string.Join(", ", left.FoodTypes)}";
+                lblLeftPhone.Text = LanguageManager.GetTranslation("phoneLabel", left.Phone);
+                lblLeftHours.Text = LanguageManager.GetTranslation("hoursLabel", left.BusinessHours);
+                lblLeftFeature.Text = LanguageManager.GetTranslation("featureLabel", left.Feature);
+                lblLeftFoodType.Text = LanguageManager.GetTranslation("foodTypeLabel", string.Join(", ", left.FoodTypes));
 
                 // 添加歷史統計
                 if (leftVisitCount > 0)
                 {
-                    string ratingDisplay = leftAvgRating > 0 ? $" ⭐ {leftAvgRating:F1}" : " (未評分)";
-                    lblLeftName.Text += $" (去過 {leftVisitCount} 次{ratingDisplay})";
+                    if (leftAvgRating > 0)
+                    {
+                        lblLeftName.Text += LanguageManager.GetTranslation("timesVisited", leftVisitCount, leftAvgRating);
+                    }
+                    else
+                    {
+                        lblLeftName.Text += LanguageManager.GetTranslation("timesVisitedNoRating", leftVisitCount);
+                    }
                 }
 
                 SetRestaurantImage(picLeftImage, left);
@@ -299,16 +310,22 @@ namespace RestaurantPicker.Views
                 var (rightVisitCount, rightAvgRating) = _preferenceService.GetRestaurantStats(right.Id);
 
                 lblRightName.Text = right.Name;
-                lblRightPhone.Text = $"電話: {right.Phone}";
-                lblRightHours.Text = $"營業: {right.BusinessHours}";
-                lblRightFeature.Text = $"特色: {right.Feature}";
-                lblRightFoodType.Text = $"種類: {string.Join(", ", right.FoodTypes)}";
+                lblRightPhone.Text = LanguageManager.GetTranslation("phoneLabel", right.Phone);
+                lblRightHours.Text = LanguageManager.GetTranslation("hoursLabel", right.BusinessHours);
+                lblRightFeature.Text = LanguageManager.GetTranslation("featureLabel", right.Feature);
+                lblRightFoodType.Text = LanguageManager.GetTranslation("foodTypeLabel", string.Join(", ", right.FoodTypes));
 
                 // 添加歷史統計
                 if (rightVisitCount > 0)
                 {
-                    string ratingDisplay = rightAvgRating > 0 ? $" ⭐ {rightAvgRating:F1}" : " (未評分)";
-                    lblRightName.Text += $" (去過 {rightVisitCount} 次{ratingDisplay})";
+                    if (rightAvgRating > 0)
+                    {
+                        lblRightName.Text += LanguageManager.GetTranslation("timesVisited", rightVisitCount, rightAvgRating);
+                    }
+                    else
+                    {
+                        lblRightName.Text += LanguageManager.GetTranslation("timesVisitedNoRating", rightVisitCount);
+                    }
                 }
 
                 SetRestaurantImage(picRightImage, right);
@@ -320,7 +337,7 @@ namespace RestaurantPicker.Views
         private void UpdateProgressLabel()
         {
             int remaining = _swipeMatchService.GetRemainingCandidateCount() + 1;
-            lblProgress.Text = $"剩餘 {remaining} / {_totalFilteredCount} 家餐廳";
+            lblProgress.Text = LanguageManager.GetTranslation("swipeProgress", remaining, _totalFilteredCount);
         }
 
         private void btnSelectLeft_Click(object sender, EventArgs e)
@@ -357,7 +374,11 @@ namespace RestaurantPicker.Views
 
             if (finalRestaurant == null)
             {
-                MessageBox.Show("無法取得推薦結果，請重新開始。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "無法取得推薦結果，請重新開始。" : "Failed to obtain recommendation. Please restart.",
+                    LanguageManager.GetTranslation("resetFailedTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 this.DialogResult = DialogResult.Cancel;
                 this.Close();
                 return;
