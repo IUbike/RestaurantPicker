@@ -35,6 +35,8 @@ namespace RestaurantPicker.Views
             _mealTimeMode = mealTimeMode;
             this.Text = "推薦結果";
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackgroundImage = LanguageManager.LoadAssetImage("back3.jpg");
+            this.BackgroundImageLayout = ImageLayout.Stretch;
 
             string preferencePath = System.IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
@@ -79,7 +81,10 @@ namespace RestaurantPicker.Views
             System.Windows.Forms.Application.DoEvents();  // 讓 UI 先顯示
             this.BeginInvoke(new Action(() =>
             {
-                ShowRatingDialog();
+                if (_recommendedRestaurant != null && !_autoSaved && !string.Equals(_mealTimeMode, "custom", StringComparison.OrdinalIgnoreCase))
+                {
+                    ShowRatingDialog();
+                }
             }));
         }
 
@@ -89,16 +94,16 @@ namespace RestaurantPicker.Views
             int height = Math.Max(size.Height, 40);
             var bitmap = new Bitmap(width, height);
             using var g = Graphics.FromImage(bitmap);
-            g.Clear(Color.Gainsboro);
+            g.Clear(Color.Transparent);
             using var brush = new SolidBrush(Color.DimGray);
-            using var font = new Font("微軟正 黑體", 10F, FontStyle.Regular);
+            using var font = new Font("微軟正黑體", 10F, FontStyle.Regular);
             var rect = new RectangleF(0, 0, width, height);
             var format = new StringFormat
             {
                 Alignment = StringAlignment.Center,
                 LineAlignment = StringAlignment.Center
             };
-            g.DrawString("暫無圖片", font, brush, rect, format);
+            g.DrawString(LanguageManager.CurrentLanguage == LanguageType.Chinese ? "暫無圖片" : "No Image", font, brush, rect, format);
             return bitmap;
         }
 
@@ -155,6 +160,18 @@ namespace RestaurantPicker.Views
             lblTitle.Text = LanguageManager.GetTranslation("resultTitle");
             lblTitleText.Text = LanguageManager.GetTranslation("resultSub");
 
+            // Make labels, panels transparent for the background
+            foreach (Control ctrl in this.Controls)
+            {
+                if (ctrl is Label || ctrl is Panel)
+                {
+                    ctrl.BackColor = Color.Transparent;
+                }
+            }
+
+            // Make PictureBox transparent to show the card's white background
+            picRestaurantImage.BackColor = Color.Transparent;
+
             // Apply full-button images dynamically (resolves _e versions automatically!)
             LanguageManager.ApplyFullButtonImage(btnConfirm, "icons_ok.png");
             LanguageManager.ApplyFullButtonImage(btnFavorite, "icons_like.png");
@@ -183,10 +200,10 @@ namespace RestaurantPicker.Views
             lblRestaurantAddress.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese 
                 ? $"地址: {_recommendedRestaurant.Address}" 
                 : $"Address: {_recommendedRestaurant.Address}";
-            lblRestaurantFeature.Text = LanguageManager.GetTranslation("featureLabel", _recommendedRestaurant.Feature);
+            lblRestaurantFeature.Text = LanguageManager.GetTranslation("featureLabel", LanguageManager.GetLocalizedFeature(_recommendedRestaurant.Feature));
             lblRestaurantFoodType.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese 
                 ? $"食物種類: {string.Join(", ", _recommendedRestaurant.FoodTypes)}" 
-                : $"Food Style: {string.Join(", ", _recommendedRestaurant.FoodTypes)}";
+                : $"Food Style: {string.Join(", ", _recommendedRestaurant.FoodTypes.Select(LanguageManager.GetLocalizedTag))}";
             lblRestaurantPrice.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese 
                 ? $"價位: {_recommendedRestaurant.PriceRange}" 
                 : $"Price: {_recommendedRestaurant.PriceRange}";

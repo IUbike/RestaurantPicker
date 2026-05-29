@@ -625,8 +625,8 @@ namespace RestaurantPicker.Views
             {
                 Location = new Point(50, 150),
                 Size = new Size(840, 580),  // 增加高度以容納返回按鈕
-                BackColor = Color.WhiteSmoke,
-                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.Transparent,
+                BorderStyle = BorderStyle.None,
                 AutoScroll = true,
                 Visible = false
             };
@@ -666,13 +666,14 @@ namespace RestaurantPicker.Views
                 {
                     Location = new Point(10, 35),
                     Size = new Size(220, 130),
-                    BackColor = Color.LightGray,
+                    BackColor = Color.FromArgb(250, 246, 236),
                     FlatStyle = FlatStyle.Flat,
                     Text = "點擊新增",
                     Font = new Font("微軟正黑體", 11F),
-                    ForeColor = Color.DarkGray,
+                    ForeColor = Color.FromArgb(160, 140, 120),
                     Tag = idx
                 };
+                button.FlatAppearance.BorderColor = Color.FromArgb(235, 225, 210);
 
                 button.Click += (s, e) => MealSlot_Click(idx);
 
@@ -782,8 +783,9 @@ namespace RestaurantPicker.Views
                     label.Text = "";
                     button.Text = LanguageManager.GetTranslation("clickToAdd");
                     button.Image = null;
-                    button.BackColor = Color.LightGray;
-                    button.ForeColor = Color.DarkGray;
+                    button.BackColor = Color.FromArgb(250, 246, 236);
+                    button.ForeColor = Color.FromArgb(160, 140, 120);
+                    button.FlatAppearance.BorderColor = Color.FromArgb(235, 225, 210);
                     ratingLabel.Text = "";
                 }
             }
