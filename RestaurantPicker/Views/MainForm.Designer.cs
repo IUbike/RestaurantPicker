@@ -34,6 +34,7 @@ namespace RestaurantPicker.Views
             btnTodayMeal = new Button();
             btnReset = new Button();
             btnStart = new Button();
+            btnLanguage = new Button();
             SuspendLayout();
             // 
             // btnManageRestaurant
@@ -133,6 +134,7 @@ namespace RestaurantPicker.Views
             BackColor = Color.LightGray;
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(1195, 1034);
+            Controls.Add(btnLanguage);
             Controls.Add(btnReset);
             Controls.Add(btnManagePreference);
             Controls.Add(btnManageRestaurant);
@@ -160,5 +162,6 @@ namespace RestaurantPicker.Views
         private System.Windows.Forms.Button btnManagePreference;
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Label lblTitle;
+        private System.Windows.Forms.Button btnLanguage;
     }
 }

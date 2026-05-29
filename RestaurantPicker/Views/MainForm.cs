@@ -66,13 +66,111 @@ namespace RestaurantPicker.Views
 
             // 視窗縮放時重新排版
             this.Resize += MainForm_Resize;
+
+            // Configure Language Button
+            btnLanguage.Click += btnLanguage_Click;
+            btnLanguage.BackColor = Color.FromArgb(253, 249, 238);
+            btnLanguage.ForeColor = Color.FromArgb(115, 87, 61);
+            btnLanguage.FlatStyle = FlatStyle.Flat;
+            btnLanguage.FlatAppearance.BorderSize = 0;
+            btnLanguage.FlatAppearance.MouseDownBackColor = Color.FromArgb(242, 234, 214);
+            btnLanguage.FlatAppearance.MouseOverBackColor = Color.FromArgb(248, 242, 226);
+            btnLanguage.Font = new Font("微軟正黑體", 10F, FontStyle.Bold);
+            btnLanguage.Cursor = Cursors.Hand;
+            btnLanguage.Padding = new Padding(20, 0, 0, 0);
+            btnLanguage.Paint += (s, pe) =>
+            {
+                pe.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                
+                // Draw latte border outline
+                using (var pen = new Pen(Color.FromArgb(180, 217, 198, 175), 1.5f))
+                {
+                    var borderPath = new System.Drawing.Drawing2D.GraphicsPath();
+                    int d = 32;
+                    borderPath.AddArc(new Rectangle(1, 1, d, d), 180, 90);
+                    borderPath.AddArc(new Rectangle(btnLanguage.Width - d - 2, 1, d, d), 270, 90);
+                    borderPath.AddArc(new Rectangle(btnLanguage.Width - d - 2, btnLanguage.Height - d - 2, d, d), 0, 90);
+                    borderPath.AddArc(new Rectangle(1, btnLanguage.Height - d - 2, d, d), 90, 90);
+                    borderPath.CloseFigure();
+                    pe.Graphics.DrawPath(pen, borderPath);
+                }
+
+                // Draw minimalist GDI+ globe icon on the left
+                int iconSize = 16;
+                int iconX = 14;
+                int iconY = (btnLanguage.Height - iconSize) / 2;
+                using (var iconPen = new Pen(Color.FromArgb(115, 87, 61), 1.5f))
+                {
+                    pe.Graphics.DrawEllipse(iconPen, iconX, iconY, iconSize, iconSize);
+                    pe.Graphics.DrawEllipse(iconPen, iconX + 4, iconY, iconSize - 8, iconSize);
+                    pe.Graphics.DrawLine(iconPen, iconX, iconY + iconSize / 2, iconX + iconSize, iconY + iconSize / 2);
+                    pe.Graphics.DrawLine(iconPen, iconX + iconSize / 2, iconY, iconX + iconSize / 2, iconY + iconSize);
+                }
+            };
+
+            // Initial translation and icon loading
+            ApplyLanguage();
         }
 
         private void MainForm_Resize(object? sender, EventArgs e)
         {
-            ApplyMainLayout();
+            ApplyLanguage();
             if (_todayMealPanel?.Visible == true)
             {
+                RefreshTodayMealPanel();
+            }
+        }
+
+        private void btnLanguage_Click(object? sender, EventArgs e)
+        {
+            if (LanguageManager.CurrentLanguage == LanguageType.Chinese)
+            {
+                LanguageManager.CurrentLanguage = LanguageType.English;
+            }
+            else
+            {
+                LanguageManager.CurrentLanguage = LanguageType.Chinese;
+            }
+            ApplyLanguage();
+        }
+
+        private void ApplyLanguage()
+        {
+            if (lblTitle == null || btnStart == null || btnTodayMeal == null ||
+                btnManageRestaurant == null || btnManagePreference == null || btnReset == null || btnLanguage == null)
+            {
+                return;
+            }
+
+            this.Text = LanguageManager.GetTranslation("lblTitle");
+            lblTitle.Text = LanguageManager.GetTranslation("lblTitle");
+
+            // 1. Resize and arrange all buttons first to get their final dimensions
+            ApplyMainLayout();
+
+            // 2. Scale and apply high-fidelity images to exactly fit the final button dimensions
+            LanguageManager.ApplyFullButtonImage(btnStart, "icons_start.png");
+            LanguageManager.ApplyFullButtonImage(btnTodayMeal, "icons_myfavorites.png");
+            LanguageManager.ApplyFullButtonImage(btnManageRestaurant, "icons_favoritesmanagement.png");
+            LanguageManager.ApplyFullButtonImage(btnManagePreference, "icons_collection.png");
+            LanguageManager.ApplyFullButtonImage(btnReset, "icons_clear.png");
+
+            // For the language switch button, style it cleanly as a flat button
+            btnLanguage.FlatStyle = FlatStyle.Flat;
+            btnLanguage.FlatAppearance.BorderSize = 0;
+            btnLanguage.BackColor = Color.FromArgb(253, 249, 238);
+            btnLanguage.ForeColor = Color.FromArgb(115, 87, 61);
+            btnLanguage.Text = LanguageManager.GetTranslation("langToggle");
+            btnLanguage.Image = null; // No standard icon image (GDI+ draws the globe icon instead!)
+
+            // Translate today's panel elements
+            if (_todayMealPanel != null)
+            {
+                var btnBack = _todayMealPanel.Controls["btnBackToHome"] as Button;
+                if (btnBack != null)
+                {
+                    LanguageManager.ApplyFullButtonImage(btnBack, "icons_leave.png");
+                }
                 RefreshTodayMealPanel();
             }
         }
@@ -81,27 +179,26 @@ namespace RestaurantPicker.Views
         {
             // 避免在 InitializeComponent 尚未完成時觸發 Resize 造成 NullReference
             if (lblTitle == null || btnStart == null || btnTodayMeal == null ||
-                btnManageRestaurant == null || btnManagePreference == null || btnReset == null)
+                btnManageRestaurant == null || btnManagePreference == null || btnReset == null || btnLanguage == null)
             {
                 return;
             }
 
-            // 主頁控件依目前視窗高度排版，避免在小螢幕或高 DPI 環境被裁切。
-            int horizontalPadding = Math.Clamp(ClientSize.Width / 10, 48, 120);
-            int buttonWidth = Math.Clamp(ClientSize.Width - (horizontalPadding * 2), 360, 520);
-            int gap = Math.Clamp(ClientSize.Height / 60, 8, 16);
-            int titleTop = Math.Clamp(ClientSize.Height / 14, 24, 60);
-            int buttonHeight = Math.Clamp(ClientSize.Height / 8, 58, 88);
-            int startHeight = Math.Clamp(ClientSize.Height / 6, 78, 118);
-            int resetHeight = Math.Clamp(ClientSize.Height / 14, 36, 46);
+            // 主頁按鈕採用 1:5 的黃金比例排版 (高度為寬度的 20%)，呈現最專業的遊戲感膠囊按鈕
+            int buttonWidth = Math.Clamp((int)(ClientSize.Width * 0.34), 280, 380);
+            int buttonHeight = Math.Clamp((int)(buttonWidth * 0.20), 56, 76);
+            int gap = Math.Clamp(ClientSize.Height / 72, 6, 12);
+            int titleTop = Math.Clamp(ClientSize.Height / 14, 24, 50);
             int x = (ClientSize.Width - buttonWidth) / 2;
 
             lblTitle.Location = new Point((ClientSize.Width - lblTitle.Width) / 2, titleTop);
 
-            btnStart.Size = new Size(buttonWidth, startHeight);
-            int controlsHeight = startHeight + (buttonHeight * 3) + resetHeight + (gap * 4);
+            btnStart.Size = new Size(buttonWidth, buttonHeight);
+            int controlsHeight = (buttonHeight * 5) + (gap * 4);
             int maxFirstButtonTop = Math.Max(96, ClientSize.Height - controlsHeight - 24);
-            int firstButtonTop = Math.Clamp((int)(ClientSize.Height * 0.34), 130, maxFirstButtonTop);
+            
+            // 首頁按鈕群垂直置中微調，保留上下平衡的美感空間
+            int firstButtonTop = Math.Clamp((int)(ClientSize.Height * 0.34), 120, maxFirstButtonTop);
             btnStart.Location = new Point(x, firstButtonTop);
 
             btnTodayMeal.Size = new Size(buttonWidth, buttonHeight);
@@ -113,8 +210,22 @@ namespace RestaurantPicker.Views
             btnManagePreference.Size = new Size(buttonWidth, buttonHeight);
             btnManagePreference.Location = new Point(x, btnManageRestaurant.Bottom + gap);
 
-            btnReset.Size = new Size(buttonWidth, resetHeight);
+            btnReset.Size = new Size(buttonWidth, buttonHeight);
             btnReset.Location = new Point(x, btnManagePreference.Bottom + gap);
+
+            btnLanguage.Size = new Size(130, 42);
+            btnLanguage.Location = new Point(ClientSize.Width - btnLanguage.Width - 24, 24);
+
+            // Round the corners of the language button to make it a premium capsule shape
+            var path = new System.Drawing.Drawing2D.GraphicsPath();
+            int diameter = 32;
+            path.StartFigure();
+            path.AddArc(new Rectangle(0, 0, diameter, diameter), 180, 90);
+            path.AddArc(new Rectangle(btnLanguage.Width - diameter - 1, 0, diameter, diameter), 270, 90);
+            path.AddArc(new Rectangle(btnLanguage.Width - diameter - 1, btnLanguage.Height - diameter - 1, diameter, diameter), 0, 90);
+            path.AddArc(new Rectangle(0, btnLanguage.Height - diameter - 1, diameter, diameter), 90, 90);
+            path.CloseFigure();
+            btnLanguage.Region = new Region(path);
 
             ApplyTodayMealPanelLayout();
         }
@@ -205,18 +316,20 @@ namespace RestaurantPicker.Views
                 btnStart.FlatAppearance.BorderSize = 0;
                 btnStart.FlatAppearance.MouseDownBackColor = Color.Transparent;
                 btnStart.FlatAppearance.MouseOverBackColor = Color.Transparent;
-                btnStart.BackColor = Color.LightGray;
+                btnStart.BackColor = Color.Transparent;
                 btnStart.ForeColor = Color.Black;
                 btnStart.FlatStyle = FlatStyle.Flat;
                 btnStart.Cursor = Cursors.Hand;
                 btnStart.BackgroundImage = null;
 
-                // 嘗試載入圖片
-                if (Resources.icons_start != null)
+                // 嘗試動態載入圖片
+                using var startIcon = LanguageManager.LoadIcon("icons_start.png");
+                if (startIcon != null)
                 {
-                    var coverImage = CreateCoverImage(Resources.icons_start, btnStart.Size);
+                    var coverImage = CreateCoverImage(startIcon, btnStart.Size);
                     if (coverImage != null)
                     {
+                        btnStart.Image?.Dispose();
                         btnStart.Image = coverImage;
                         btnStart.ImageAlign = ContentAlignment.MiddleCenter;
                         btnStart.TextAlign = ContentAlignment.MiddleCenter;
@@ -228,7 +341,7 @@ namespace RestaurantPicker.Views
                 System.Diagnostics.Debug.WriteLine($"配置 Start 按鈕失敗: {ex.Message}");
                 // 失敗時，保留預設樣式
                 btnStart.BackColor = Color.LightBlue;
-                btnStart.Text = "開始選餐";
+                btnStart.Text = LanguageManager.GetTranslation("btnStart") == "  " ? "開始選餐" : LanguageManager.GetTranslation("btnStart");
                 btnStart.Font = new Font("微軟正黑體", 14F, FontStyle.Bold);
             }
         }
@@ -342,7 +455,7 @@ namespace RestaurantPicker.Views
         {
             // 在窗體完全載入後配置按鈕，確保所有控件已初始化
             ApplyMainLayout();
-            ConfigureStartButton();
+            ApplyLanguage();
 
             // 確保今日餐廳面板在最前面（層級設置）
             if (_todayMealPanel != null)
@@ -384,6 +497,7 @@ namespace RestaurantPicker.Views
             btnManagePreference.Visible = false;
             btnTodayMeal.Visible = false;
             btnReset.Visible = false;
+            btnLanguage.Visible = false;
 
             // 顯示今日餐廳面板
             _todayMealPanel.Visible = true;
@@ -400,13 +514,10 @@ namespace RestaurantPicker.Views
                 var btnBack = new Button
                 {
                     Name = "btnBackToHome",
-                    Text = "◀ 返回主頁",
                     Size = new Size(220, 50),
-                    BackColor = Color.Gray,
-                    ForeColor = Color.White,
-                    Font = new Font("微軟正黑體", 12F, FontStyle.Bold),
                     Cursor = Cursors.Hand
                 };
+                LanguageManager.ApplyFullButtonImage(btnBack, "icons_leave.png");
                 btnBack.Click += (s, e) => ReturnToHome();
                 _todayMealPanel.Controls.Add(btnBack);
             }
@@ -417,7 +528,11 @@ namespace RestaurantPicker.Views
 
         private void btnReset_Click(object sender, EventArgs e)
         {
-            var result = MessageBox.Show("確定要重置所有使用者資料嗎？這會清除評分、今日紀錄與收藏/封鎖，無法還原。", "重置確認", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            var result = MessageBox.Show(
+                LanguageManager.GetTranslation("resetConfirm"),
+                LanguageManager.GetTranslation("resetTitle"),
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
             if (result != DialogResult.Yes)
                 return;
 
@@ -426,18 +541,24 @@ namespace RestaurantPicker.Views
                 // 清除偏好檔
                 _preferenceService.ResetPreferences();
 
-                // 可選：刪除暫存圖片或其他檔案（目前不執行）
-
                 // 重新載入偏好並刷新 UI
                 _preferenceService.LoadPreferences();
                 RefreshTodayMealPanel();
 
-                MessageBox.Show("已重置所有使用者資料。", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("resetDone"),
+                    LanguageManager.GetTranslation("resetDoneTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 System.Diagnostics.Debug.WriteLine("[DEBUG] 使用者按下 Reset，已清除所有偏好檔案。");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"重置失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("resetFailed") + ex.Message,
+                    LanguageManager.GetTranslation("resetFailedTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 System.Diagnostics.Debug.WriteLine($"[DEBUG] Reset 失敗: {ex.Message}");
             }
         }
@@ -457,6 +578,7 @@ namespace RestaurantPicker.Views
             btnManagePreference.Visible = true;
             btnTodayMeal.Visible = true;
             btnReset.Visible = true;
+            btnLanguage.Visible = true;
 
             // 移除返回按鈕（下次進入時重新建立）
             var btnBack = _todayMealPanel.Controls["btnBackToHome"];
@@ -475,7 +597,11 @@ namespace RestaurantPicker.Views
             using var manageForm = new ManageRestaurantForm(_restaurantRepository);
             if (manageForm.ShowDialog() == DialogResult.OK)
             {
-                MessageBox.Show("餐廳資料已更新。", "完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("updateDone"),
+                    LanguageManager.GetTranslation("resetDoneTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
         }
 
@@ -642,19 +768,19 @@ namespace RestaurantPicker.Views
 
                     if (slot.HasRating)
                     {
-                        ratingLabel.Text = $"評分: {GetStarDisplay(slot.Rating)}";
+                        ratingLabel.Text = LanguageManager.GetTranslation("ratingTitle") + GetStarDisplay(slot.Rating);
                         ratingLabel.ForeColor = Color.Black;
                     }
                     else
                     {
-                        ratingLabel.Text = "[未評分] 點擊評分";
+                        ratingLabel.Text = LanguageManager.GetTranslation("notRatedYet");
                         ratingLabel.ForeColor = Color.Red;
                     }
                 }
                 else
                 {
                     label.Text = "";
-                    button.Text = "點擊新增";
+                    button.Text = LanguageManager.GetTranslation("clickToAdd");
                     button.Image = null;
                     button.BackColor = Color.LightGray;
                     button.ForeColor = Color.DarkGray;

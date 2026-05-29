@@ -56,6 +56,7 @@ namespace RestaurantPicker.Views
 
         private void ResultForm_Load(object sender, EventArgs e)
         {
+            ApplyLanguage();
             DisplayResult();
 
             // 如果是 sequential 模式，開啟時自動儲存到下一個可用槽位
@@ -148,22 +149,47 @@ namespace RestaurantPicker.Views
             return null;
         }
 
+        private void ApplyLanguage()
+        {
+            this.Text = LanguageManager.GetTranslation("resultTitle");
+            lblTitle.Text = LanguageManager.GetTranslation("resultTitle");
+            lblTitleText.Text = LanguageManager.GetTranslation("resultSub");
+
+            // Apply full-button images dynamically (resolves _e versions automatically!)
+            LanguageManager.ApplyFullButtonImage(btnConfirm, "icons_ok.png");
+            LanguageManager.ApplyFullButtonImage(btnFavorite, "icons_like.png");
+            LanguageManager.ApplyFullButtonImage(btnShare, "icons_share.png");
+            LanguageManager.ApplyFullButtonImage(btnDontShow, "icons_block.png");
+        }
+
         private void DisplayResult()
         {
             if (_recommendedRestaurant == null)
             {
-                MessageBox.Show("無效的推薦結果", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "無效的推薦結果" : "Invalid recommendation result",
+                    LanguageManager.GetTranslation("resetFailedTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 this.Close();
                 return;
             }
 
             lblRestaurantName.Text = _recommendedRestaurant.Name;
-            lblRestaurantPhone.Text = $"電話: {_recommendedRestaurant.Phone}";
-            lblRestaurantHours.Text = $"營業時間: {_recommendedRestaurant.BusinessHours}";
-            lblRestaurantAddress.Text = $"地址: {_recommendedRestaurant.Address}";
-            lblRestaurantFeature.Text = $"特色: {_recommendedRestaurant.Feature}";
-            lblRestaurantFoodType.Text = $"食物種類: {string.Join(", ", _recommendedRestaurant.FoodTypes)}";
-            lblRestaurantPrice.Text = $"價位: {_recommendedRestaurant.PriceRange}";
+            lblRestaurantPhone.Text = LanguageManager.GetTranslation("phoneLabel", _recommendedRestaurant.Phone);
+            lblRestaurantHours.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese 
+                ? $"營業時間: {_recommendedRestaurant.BusinessHours}" 
+                : $"Hours: {_recommendedRestaurant.BusinessHours}";
+            lblRestaurantAddress.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese 
+                ? $"地址: {_recommendedRestaurant.Address}" 
+                : $"Address: {_recommendedRestaurant.Address}";
+            lblRestaurantFeature.Text = LanguageManager.GetTranslation("featureLabel", _recommendedRestaurant.Feature);
+            lblRestaurantFoodType.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese 
+                ? $"食物種類: {string.Join(", ", _recommendedRestaurant.FoodTypes)}" 
+                : $"Food Style: {string.Join(", ", _recommendedRestaurant.FoodTypes)}";
+            lblRestaurantPrice.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese 
+                ? $"價位: {_recommendedRestaurant.PriceRange}" 
+                : $"Price: {_recommendedRestaurant.PriceRange}";
 
             picRestaurantImage.Image?.Dispose();
             picRestaurantImage.Image = LoadRestaurantImage(_recommendedRestaurant.ImageFileName)
@@ -177,13 +203,11 @@ namespace RestaurantPicker.Views
         {
             if (_isFavorited)
             {
-                btnFavorite.Text = "♥ 已收藏";
-                btnFavorite.BackColor = System.Drawing.Color.Red;
+                LanguageManager.ApplyFullButtonImage(btnFavorite, "icons_collection.png");
             }
             else
             {
-                btnFavorite.Text = "♡ 收藏";
-                btnFavorite.BackColor = System.Drawing.Color.Orange;
+                LanguageManager.ApplyFullButtonImage(btnFavorite, "icons_like.png");
             }
         }
 
@@ -243,13 +267,21 @@ namespace RestaurantPicker.Views
             {
                 _preferenceService.RemoveFavorite(_recommendedRestaurant.Id);
                 _isFavorited = false;
-                MessageBox.Show("已取消收藏", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("favoriteRemoved"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
             else
             {
                 _preferenceService.AddFavorite(_recommendedRestaurant.Id);
                 _isFavorited = true;
-                MessageBox.Show("已收藏此餐廳", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("favoriteAdded"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
 
             UpdateFavoriteButtonAppearance();
@@ -257,29 +289,48 @@ namespace RestaurantPicker.Views
 
         private void btnShare_Click(object sender, EventArgs e)
         {
-            string shareText = $"{_recommendedRestaurant.Name}\n" +
-                             $"電話: {_recommendedRestaurant.Phone}\n" +
-                             $"地址: {_recommendedRestaurant.Address}\n" +
-                             $"營業時間: {_recommendedRestaurant.BusinessHours}\n" +
-                             $"特色: {_recommendedRestaurant.Feature}";
+            string shareText;
+            if (LanguageManager.CurrentLanguage == LanguageType.English)
+            {
+                shareText = $"{_recommendedRestaurant.Name}\n" +
+                            $"Phone: {_recommendedRestaurant.Phone}\n" +
+                            $"Address: {_recommendedRestaurant.Address}\n" +
+                            $"Hours: {_recommendedRestaurant.BusinessHours}\n" +
+                            $"Feature: {_recommendedRestaurant.Feature}";
+            }
+            else
+            {
+                shareText = $"{_recommendedRestaurant.Name}\n" +
+                            $"電話: {_recommendedRestaurant.Phone}\n" +
+                            $"地址: {_recommendedRestaurant.Address}\n" +
+                            $"營業時間: {_recommendedRestaurant.BusinessHours}\n" +
+                            $"特色: {_recommendedRestaurant.Feature}";
+            }
 
             try
             {
                 Clipboard.SetText(shareText);
-                MessageBox.Show("已複製到剪貼板", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("copiedToClipboard"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"複製失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("copyFailed") + ex.Message,
+                    LanguageManager.GetTranslation("resetFailedTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
         private void btnDontShow_Click(object sender, EventArgs e)
         {
             DialogResult result = MessageBox.Show(
-                $"確定要封鎖「{_recommendedRestaurant.Name}」嗎？\n" +
-                "未來篩選時將不會再看到此餐廳。",
-                "確認",
+                LanguageManager.GetTranslation("blockConfirm", _recommendedRestaurant.Name),
+                LanguageManager.GetTranslation("confirmTitle"),
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question
             );
@@ -287,7 +338,11 @@ namespace RestaurantPicker.Views
             if (result == DialogResult.Yes)
             {
                 _preferenceService.AddBlocked(_recommendedRestaurant.Id);
-                MessageBox.Show("已封鎖此餐廳", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    LanguageManager.GetTranslation("blockDone"),
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
 
                 this.DialogResult = DialogResult.OK;
                 this.Close();
@@ -316,7 +371,11 @@ namespace RestaurantPicker.Views
                     {
                         _preferenceService.UpdateMealRating(record.Id, rating);
                         System.Diagnostics.Debug.WriteLine($"[DEBUG] ResultForm updated rating for MealRecord Id={record.Id} Rating={rating}");
-                        MessageBox.Show($"已記錄評分：{rating} 顆星", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(
+                            LanguageManager.GetTranslation("ratingRecorded", rating),
+                            LanguageManager.GetTranslation("hintTitle"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
                     }
                     else
                     {
@@ -333,13 +392,21 @@ namespace RestaurantPicker.Views
 
                         _preferenceService.AddMealRecord(newRecord);
                         System.Diagnostics.Debug.WriteLine($"[DEBUG] ResultForm created new MealRecord Id={newRecord.Id} with Rating={rating}");
-                        MessageBox.Show($"已記錄評分：{rating} 顆星", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(
+                            LanguageManager.GetTranslation("ratingRecorded", rating),
+                            LanguageManager.GetTranslation("hintTitle"),
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
                     }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"更新評分失敗: {ex.Message}");
-                    MessageBox.Show($"記錄評分失敗: {ex.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(
+                        (LanguageManager.CurrentLanguage == LanguageType.Chinese ? "記錄評分失敗: " : "Failed to record rating: ") + ex.Message,
+                        LanguageManager.GetTranslation("resetFailedTitle"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
                 }
 
                 string ratingDisplay = rating >= 0 ? $"{rating} 顆星" : "未評分";
