@@ -3,96 +3,106 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+using LiteDB;
 using RestaurantPicker.Models;
 
 namespace RestaurantPicker.Services
 {
     /// <summary>
     /// 使用者偏好服務
-    /// 負責讀寫 user_preferences.json，管理收藏、封鎖清單和用餐紀錄
+    /// 負責讀寫 LiteDB，管理收藏、封鎖清單和用餐紀錄
     /// </summary>
     public class UserPreferenceService
     {
-        private readonly string _preferenceFilePath;
+        private readonly string _databasePath;
+        private readonly string? _legacyPreferencePath;
         private UserPreference _userPreference;
 
-        public UserPreferenceService(string preferenceFilePath)
+        public UserPreferenceService(string databasePath, string? legacyPreferencePath = null)
         {
-            _preferenceFilePath = preferenceFilePath;
+            _databasePath = databasePath;
+            _legacyPreferencePath = legacyPreferencePath;
             _userPreference = new UserPreference();
         }
 
         /// <summary>
         /// 載入使用者偏好
-        /// 若檔案不存在，建立新的空偏好
+        /// 若資料不存在，建立新的空偏好
         /// </summary>
         public UserPreference LoadPreferences()
         {
             try
             {
-                if (!File.Exists(_preferenceFilePath))
+                using var db = new LiteDatabase(_databasePath);
+                var collection = db.GetCollection<UserPreference>("user_preferences");
+                collection.EnsureIndex(p => p.Id, true);
+
+                var preference = collection.FindById(1);
+                if (preference == null)
                 {
-                    // 檔案不存在，建立新的空偏好
-                    _userPreference = new UserPreference();
-                    SavePreferences(_userPreference);
-                    return _userPreference;
+                    preference = LoadLegacyPreferences() ?? new UserPreference();
+                    preference.Id = 1;
+                    collection.Upsert(preference);
                 }
 
-                // 讀取 JSON 檔案
-                string json = File.ReadAllText(_preferenceFilePath);
-                
-                // 反序列化
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    WriteIndented = true
-                };
-
-                _userPreference = JsonSerializer.Deserialize<UserPreference>(json, options);
-
-                if (_userPreference == null)
-                {
-                    _userPreference = new UserPreference();
-                }
-
+                _userPreference = preference;
                 return _userPreference;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"讀取使用者偏好失敗: {ex.Message}");
-                // 發生錯誤時，返回空偏好
                 _userPreference = new UserPreference();
                 return _userPreference;
             }
         }
 
-        /// <summary>
-        /// 儲存使用者偏好到 JSON 檔案
-        /// </summary>
-        public void SavePreferences(UserPreference userPreference)
+        private UserPreference? LoadLegacyPreferences()
         {
+            if (string.IsNullOrWhiteSpace(_legacyPreferencePath) || !File.Exists(_legacyPreferencePath))
+            {
+                return null;
+            }
+
             try
             {
-                _userPreference = userPreference;
-
-                // 序列化
-                var options = new JsonSerializerOptions
+                string json = File.ReadAllText(_legacyPreferencePath);
+                var options = new System.Text.Json.JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     WriteIndented = true
                 };
 
-                string json = JsonSerializer.Serialize(_userPreference, options);
-
-                // 確保目錄存在
-                string directory = Path.GetDirectoryName(_preferenceFilePath);
-                if (!Directory.Exists(directory))
+                var preference = JsonSerializer.Deserialize<UserPreference>(json, options);
+                if (preference == null)
                 {
-                    Directory.CreateDirectory(directory);
+                    return null;
                 }
 
-                // 寫入檔案
-                File.WriteAllText(_preferenceFilePath, json);
+                preference.Id = 1;
+                return preference;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"讀取舊版偏好失敗: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 儲存使用者偏好到 LiteDB
+        /// </summary>
+        public void SavePreferences(UserPreference userPreference)
+        {
+            try
+            {
+                _userPreference = userPreference ?? new UserPreference();
+                _userPreference.Id = 1;
+
+                using var db = new LiteDatabase(_databasePath);
+                var collection = db.GetCollection<UserPreference>("user_preferences");
+                collection.EnsureIndex(p => p.Id, true);
+                collection.Upsert(_userPreference);
             }
             catch (Exception ex)
             {
@@ -169,9 +179,8 @@ namespace RestaurantPicker.Services
             {
                 if (record.Id == 0)
                 {
-                    // 自增 ID
-                    record.Id = (_userPreference.MealHistory.Count > 0 
-                        ? _userPreference.MealHistory.Max(m => m.Id) 
+                    record.Id = (_userPreference.MealHistory.Count > 0
+                        ? _userPreference.MealHistory.Max(m => m.Id)
                         : 0) + 1;
                 }
                 _userPreference.MealHistory.Add(record);

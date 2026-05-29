@@ -36,12 +36,17 @@ namespace RestaurantPicker.Views
             this.Text = "推薦結果";
             this.StartPosition = FormStartPosition.CenterScreen;
 
+            string databasePath = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Data",
+                "restaurantpicker.db"
+            );
             string preferencePath = System.IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "Data",
                 "user_preferences.json"
             );
-            _preferenceService = new UserPreferenceService(preferencePath);
+            _preferenceService = new UserPreferenceService(databasePath, preferencePath);
             _preferenceService.LoadPreferences();
 
             // 為了支援 sequential 行為，初始化 TodayMealService
@@ -50,7 +55,7 @@ namespace RestaurantPicker.Views
                 "Data",
                 "restaurants.csv"
             );
-            var restaurantRepository = new CsvRestaurantRepository(csvPath);
+            var restaurantRepository = new LiteDbRestaurantRepository(databasePath, csvPath);
             _todayMealService = new TodayMealService(_preferenceService, restaurantRepository);
         }
 

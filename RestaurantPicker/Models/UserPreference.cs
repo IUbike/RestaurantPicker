@@ -8,6 +8,8 @@ namespace RestaurantPicker.Models
     /// </summary>
     public class UserPreference
     {
+        public int Id { get; set; } = 1;
+
         /// <summary>
         /// 收藏的餐廳 ID 清單
         /// </summary>
@@ -25,6 +27,7 @@ namespace RestaurantPicker.Models
 
         public UserPreference()
         {
+            Id = 1;
             FavoriteRestaurantIds = new List<int>();
             BlockedRestaurantIds = new List<int>();
             MealHistory = new List<MealRecord>();

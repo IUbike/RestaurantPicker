@@ -20,12 +20,17 @@ namespace RestaurantPicker.Views
             InitializeComponent();
             _restaurantRepository = restaurantRepository;
 
+            string databasePath = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Data",
+                "restaurantpicker.db"
+            );
             string preferencePath = System.IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "Data",
                 "user_preferences.json"
             );
-            _preferenceService = new UserPreferenceService(preferencePath);
+            _preferenceService = new UserPreferenceService(databasePath, preferencePath);
             _preferenceService.LoadPreferences();
 
             this.StartPosition = FormStartPosition.CenterScreen;

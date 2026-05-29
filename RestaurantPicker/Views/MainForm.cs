@@ -45,7 +45,12 @@ namespace RestaurantPicker.Views
                 "Data",
                 "restaurants.csv"
             );
-            _restaurantRepository = new CsvRestaurantRepository(csvPath);
+            string databasePath = System.IO.Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "Data",
+                "restaurantpicker.db"
+            );
+            _restaurantRepository = new LiteDbRestaurantRepository(databasePath, csvPath);
             _filterService = new RestaurantFilterService();
             _randomPickService = new RandomPickService();
 
@@ -55,7 +60,7 @@ namespace RestaurantPicker.Views
                 "Data",
                 "user_preferences.json"
             );
-            _preferenceService = new UserPreferenceService(preferencePath);
+            _preferenceService = new UserPreferenceService(databasePath, preferencePath);
             _preferenceService.LoadPreferences();
 
             // 初始化今日餐廳服務
