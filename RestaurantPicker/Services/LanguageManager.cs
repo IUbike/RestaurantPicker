@@ -76,6 +76,9 @@ namespace RestaurantPicker.Services
             { "candidatePrefix", "候選餐廳數量：" },
             { "lblSelectedTitle", "已加入篩選標籤 (點擊可移除):" },
             { "selectComboHint", "-- 請選擇分類 --" },
+            { "categoryHeader", "請選擇食物種類（支援複選標籤）" },
+            { "categorySelection", "種類選擇" },
+            { "tagHint", "提示：點選標籤上的 × 可移除，或按「清空標籤」重選" },
             
             // SwipeForm
             { "swipeTitle", "選擇你喜歡的餐廳" },
@@ -202,6 +205,9 @@ namespace RestaurantPicker.Services
             { "candidatePrefix", "Candidates: " },
             { "lblSelectedTitle", "Selected tags for filter (click to remove):" },
             { "selectComboHint", "-- Select Category --" },
+            { "categoryHeader", "Please Select Food Types (Multiple Tags Supported)" },
+            { "categorySelection", "Category Selection" },
+            { "tagHint", "Tip: Click × on a tag to remove, or click \"Clear Tags\" to reset" },
             
             // SwipeForm
             { "swipeTitle", "Choose Your Favorite" },
@@ -337,6 +343,31 @@ namespace RestaurantPicker.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load icon {baseName}: {ex.Message}");
+                return null;
+            }
+        }
+
+        public static Image? LoadAssetImage(string fileName)
+        {
+            try
+            {
+                string imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", fileName);
+                if (!File.Exists(imagePath))
+                {
+                    // Fallback to searching in icons folder
+                    imagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "icons", fileName);
+                }
+
+                if (!File.Exists(imagePath))
+                    return null;
+
+                using var stream = new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var image = Image.FromStream(stream);
+                return new Bitmap(image);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load asset image {fileName}: {ex.Message}");
                 return null;
             }
         }
@@ -825,6 +856,199 @@ namespace RestaurantPicker.Services
                 }
             }
             return bmp;
+        }
+
+        private static readonly Dictionary<string, string> TagTranslations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "豆漿", "Soy Milk" },
+            { "蛋餅", "Egg Pancake" },
+            { "燒餅", "Clay Oven Roll" },
+            { "義大利麵", "Pasta" },
+            { "燉飯", "Risotto" },
+            { "炒麵", "Fried Noodles" },
+            { "炒米粉", "Fried Rice Noodles" },
+            { "關東煮", "Oden" },
+            { "雞排", "Chicken Fillet" },
+            { "炸物", "Fried Food" },
+            { "炒飯", "Fried Rice" },
+            { "燴飯", "Braising Rice" },
+            { "簡餐", "Easy Meal" },
+            { "廣東粥", "Cantonese Congee" },
+            { "鍋燒麵", "Pot Noodles" },
+            { "滷味", "Braised Food" },
+            { "湯包", "Soup Dumpling" },
+            { "煎餃", "Fried Dumpling" },
+            { "雞肉飯", "Chicken Rice" },
+            { "便當", "Bento" },
+            { "椒麻雞", "Spicy Chicken" },
+            { "現打果汁", "Fresh Juice" },
+            { "臭豆腐", "Stinky Tofu" },
+            { "水餃", "Dumpling" },
+            { "酸辣湯", "Hot & Sour Soup" },
+            { "雞排飯", "Chicken Fillet Rice" },
+            { "韓式炸雞", "Korean Fried Chicken" },
+            { "麻辣燙", "Spicy Hot Pot" },
+            { "拉麵", "Ramen" },
+            { "丼飯", "Donburi" },
+            { "定食", "Set Meal" },
+            { "快餐", "Fast Food" },
+            { "蒸餃", "Steamed Dumpling" },
+            { "熱炒", "Stir Fry" },
+            { "早午餐", "Brunch" },
+            { "漢堡", "Burger" },
+            { "鐵板麵", "Teppan Noodles" },
+            { "輕食", "Light Food" },
+            { "咖啡", "Coffee" },
+            { "泰式簡餐", "Thai Style Meal" },
+            { "打拋豬", "Pad Kra Prow" },
+            { "日式丼飯", "Japanese Donburi" },
+            { "吐司", "Toast" },
+            { "麵食", "Noodle Meal" },
+            { "三明治", "Sandwich" },
+            { "早午餐拼盤", "Brunch Platter" },
+            { "鍋貼", "Potsticker" },
+            { "健康沙拉", "Healthy Salad" },
+            { "飯食", "Rice Meal" },
+            { "牛肉麵", "Beef Noodles" },
+            { "韓食", "Korean Food" },
+            { "豆腐鍋", "Tofu Pot" },
+            { "舒肥健康餐", "Sous Vide Meal" },
+            { "小火鍋", "Mini Hot Pot" },
+            { "咖哩", "Curry" },
+            { "炸雞", "Fried Chicken" },
+            { "芋圓", "Taro Ball" },
+            { "手工豆花", "Handmade Tofu Pudding" },
+            { "中式麵食", "Chinese Noodles" },
+            { "飲料", "Drinks" },
+            { "飯糰", "Rice Ball" },
+            { "手搖飲", "Hand-shaken Tea" },
+            { "牛排", "Steak" }
+        };
+
+        private static readonly Dictionary<string, string> EnglishToChineseTag = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        static LanguageManager()
+        {
+            foreach (var kvp in TagTranslations)
+            {
+                EnglishToChineseTag[kvp.Value] = kvp.Key;
+            }
+        }
+
+        public static string GetLocalizedTag(string chTag)
+        {
+            if (string.IsNullOrWhiteSpace(chTag)) return chTag;
+            if (CurrentLanguage == LanguageType.Chinese) return chTag;
+
+            if (TagTranslations.TryGetValue(chTag.Trim(), out var enTag))
+            {
+                return enTag;
+            }
+            return chTag;
+        }
+
+        public static string GetChineseTag(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag)) return tag;
+            if (EnglishToChineseTag.TryGetValue(tag.Trim(), out var chTag))
+            {
+                return chTag;
+            }
+            return tag;
+        }
+
+        private static readonly Dictionary<string, string> FeatureTranslations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "學生愛店", "Student's Favorite" },
+            { "醬料自助吧", "Sauce Buffet Bar" },
+            { "餐點選擇多樣", "Diverse Menu Selections" },
+            { "有冷氣", "AC Available" },
+            { "飲料無限供應", "Unlimited Drinks" },
+            { "價格平實", "Affordable" },
+            { "宵夜首選", "Best for Midnight Snacks" },
+            { "現點現炸", "Freshly Fried" },
+            { "香酥多汁", "Crispy & Juicy" },
+            { "白飯/飲料吃到飽", "Unlimited Rice & Drinks" },
+            { "濃湯飲料無限供應", "Unlimited Soup & Drinks" },
+            { "口味清淡", "Mild Flavor" },
+            { "學生推薦", "Student Recommended" },
+            { "品項多元", "Diverse Selections" },
+            { "脆皮底層", "Crispy Bottom" },
+            { "現蒸現做", "Freshly Steamed" },
+            { "學生價位", "Student Friendly Prices" },
+            { "份量足", "Generous Portions" },
+            { "獨家椒麻醬汁", "Exclusive Spicy Sauce" },
+            { "湯頭甘甜", "Sweet Broth" },
+            { "熱門宵夜", "Popular Midnight Snack" },
+            { "醬汁濃郁", "Rich Sauce" },
+            { "乾溼皆可", "Dry or Soup Available" },
+            { "新鮮水果現打", "Freshly Squeezed Fruit" },
+            { "種類繁多", "Wide Variety" },
+            { "臭豆腐外酥內嫩", "Crispy Outside, Tender Inside" },
+            { "手工現包", "Handmade" },
+            { "皮Q餡實", "Chewy Skin & Rich Filling" },
+            { "飲料吃到飽", "Unlimited Drinks" },
+            { "可調整辣度", "Adjustable Spiciness" },
+            { "免費加麵一次", "One Free Noodle Refill" },
+            { "附味噌湯與飲品", "Includes Miso Soup & Drinks" },
+            { "主菜選擇多", "Many Main Course Selections" },
+            { "出餐快", "Fast Service" },
+            { "鮮肉湯包", "Pork Soup Dumplings" },
+            { "內餡多汁", "Juicy Fillings" },
+            { "份量充足", "Generous Portions" },
+            { "環境舒適", "Cozy Environment" },
+            { "附湯與飲料", "Includes Soup & Drinks" },
+            { "平價家常菜", "Affordable Home Cooking" },
+            { "適合讀書", "Good for Studying" },
+            { "有插座", "Outlets Available" },
+            { "環境安靜", "Quiet Environment" },
+            { "口味獨特", "Unique Flavor" },
+            { "學生熱門", "Popular with Students" },
+            { "食材豐富", "Rich Ingredients" },
+            { "傳統早點", "Traditional Breakfast" },
+            { "價格實惠", "Reasonable Prices" },
+            { "麵條Q彈", "Chewy Noodles" },
+            { "自製辣醬", "Homemade Spicy Sauce" },
+            { "連鎖早餐", "Chain Breakfast" },
+            { "附味噌湯", "Includes Miso Soup" },
+            { "環境乾淨", "Clean Environment" },
+            { "擺盤精美", "Beautifully Plated" },
+            { "連鎖品牌", "Chain Brand" },
+            { "品質穩定", "Consistent Quality" },
+            { "便宜大碗", "Cheap & Large Portion" },
+            { "素食友善", "Vegetarian Friendly" },
+            { "低GI飲食", "Low GI Diet" },
+            { "環境整潔", "Clean Environment" },
+            { "湯頭濃郁", "Rich Broth" },
+            { "韓式小菜吃到飽", "Unlimited Korean Side Dishes" },
+            { "食材新鮮", "Fresh Ingredients" },
+            { "吃到飽自助吧", "All-You-Can-Eat Buffet" },
+            { "環境文青", "Chic Environment" },
+            { "營業至午夜", "Open Until Midnight" },
+            { "目前暫停營業", "Temporarily Closed" },
+            { "價格親民", "Affordable Price" },
+            { "裝潢明亮舒適", "Bright & Comfortable Decor" },
+            { "道地日式風味", "Authentic Japanese Flavor" },
+            { "傳統中式早點", "Traditional Chinese Breakfast" }
+        };
+
+        public static string GetLocalizedFeature(string chFeature)
+        {
+            if (string.IsNullOrWhiteSpace(chFeature)) return chFeature;
+            if (CurrentLanguage == LanguageType.Chinese) return chFeature;
+
+            var parts = chFeature.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+            var translatedParts = parts.Select(p =>
+            {
+                var trimmed = p.Trim();
+                if (FeatureTranslations.TryGetValue(trimmed, out var enFeature))
+                {
+                    return enFeature;
+                }
+                return trimmed;
+            });
+
+            return string.Join("; ", translatedParts);
         }
     }
 }

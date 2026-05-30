@@ -38,6 +38,8 @@ namespace RestaurantPicker.Views
             _maxMealHour = maxMealHour;
             Text = "選擇食物種類";
             StartPosition = FormStartPosition.CenterScreen;
+            this.BackgroundImage = LanguageManager.LoadAssetImage("back3.jpg");
+            this.BackgroundImageLayout = ImageLayout.Stretch;
 
             string csvPath = System.IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
@@ -68,15 +70,36 @@ namespace RestaurantPicker.Views
         private void ApplyLanguage()
         {
             this.Text = LanguageManager.GetTranslation("categoryTitle");
+            lblTitle.Text = LanguageManager.GetTranslation("categoryHeader");
+            groupBoxCategory.Text = LanguageManager.GetTranslation("categorySelection");
             rbSpecific.Text = LanguageManager.GetTranslation("selectCategory");
             rbRandom.Text = LanguageManager.GetTranslation("randomCategory");
             lblSelectedTitle.Text = LanguageManager.GetTranslation("lblSelectedTitle");
+            lblTagHint.Text = LanguageManager.GetTranslation("tagHint");
+
+            // Make labels, radiobuttons, panels, groupboxes transparent recursively
+            MakeControlsTransparent(this);
 
             // Apply full-button images dynamically
             LanguageManager.ApplyFullButtonImage(btnAddTag, "icons_add.png");
             LanguageManager.ApplyFullButtonImage(btnClearTags, "icons_clear.png");
             LanguageManager.ApplyFullButtonImage(btnNext, "icons_next.png");
             LanguageManager.ApplyFullButtonImage(btnCancel, "icons_cancel.png");
+        }
+
+        private void MakeControlsTransparent(Control parent)
+        {
+            foreach (Control ctrl in parent.Controls)
+            {
+                if (ctrl is Label || ctrl is RadioButton || ctrl is Panel || ctrl is GroupBox || ctrl is CheckBox)
+                {
+                    ctrl.BackColor = Color.Transparent;
+                }
+                if (ctrl.HasChildren)
+                {
+                    MakeControlsTransparent(ctrl);
+                }
+            }
         }
 
         private List<Restaurant> GetMealTimeAvailableRestaurants()
@@ -121,7 +144,7 @@ namespace RestaurantPicker.Views
             cbCategory.Items.Clear();
             foreach (var foodType in _allAvailableFoodTypes.Where(x => !_selectedFoodTypes.Contains(x)))
             {
-                cbCategory.Items.Add(foodType);
+                cbCategory.Items.Add(LanguageManager.GetLocalizedTag(foodType));
             }
 
             if (cbCategory.Items.Count > 0)
@@ -142,9 +165,11 @@ namespace RestaurantPicker.Views
                 return;
             }
 
-            var selectedTag = cbCategory.SelectedItem.ToString();
-            if (string.IsNullOrWhiteSpace(selectedTag))
+            var displayedTag = cbCategory.SelectedItem.ToString();
+            if (string.IsNullOrWhiteSpace(displayedTag))
                 return;
+
+            var selectedTag = LanguageManager.GetChineseTag(displayedTag);
 
             if (!_selectedFoodTypes.Contains(selectedTag))
             {
@@ -173,7 +198,7 @@ namespace RestaurantPicker.Views
                 var chip = new Button
                 {
                     AutoSize = true,
-                    Text = $"{tag} ×",
+                    Text = $"{LanguageManager.GetLocalizedTag(tag)} ×",
                     BackColor = Color.LightSteelBlue,
                     FlatStyle = FlatStyle.Flat,
                     Margin = new Padding(4),
