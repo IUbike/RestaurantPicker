@@ -17,6 +17,8 @@ namespace RestaurantPicker.Views
             InitializeComponent();
             _restaurantRepository = restaurantRepository;
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackgroundImage = LanguageManager.LoadAssetImage("back3.jpg");
+            this.BackgroundImageLayout = ImageLayout.Stretch;
             ApplyLanguage();
         }
 
@@ -41,6 +43,7 @@ namespace RestaurantPicker.Views
 
             LanguageManager.ApplyFullButtonImage(btnSave, "icons_save.png");
             LanguageManager.ApplyFullButtonImage(btnCancel, "icons_cancel.png");
+            MakeControlsTransparent(this);
         }
 
         private void btnSave_Click(object sender, EventArgs e)
@@ -131,6 +134,21 @@ namespace RestaurantPicker.Views
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
+        }
+
+        private void MakeControlsTransparent(Control parent)
+        {
+            foreach (Control ctrl in parent.Controls)
+            {
+                if (ctrl is Label || ctrl is RadioButton || ctrl is Panel || ctrl is GroupBox || ctrl is CheckBox)
+                {
+                    ctrl.BackColor = Color.Transparent;
+                }
+                if (ctrl.HasChildren)
+                {
+                    MakeControlsTransparent(ctrl);
+                }
+            }
         }
     }
 }

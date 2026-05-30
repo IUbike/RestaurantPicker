@@ -36,6 +36,8 @@ namespace RestaurantPicker.Views
             this.StartPosition = FormStartPosition.CenterScreen;
             AcceptButton = btnClose;
             CancelButton = btnClose;
+            this.BackgroundImage = LanguageManager.LoadAssetImage("back3.jpg");
+            this.BackgroundImageLayout = ImageLayout.Stretch;
         }
 
         private void ManagePreferenceForm_Load(object sender, EventArgs e)
@@ -57,6 +59,7 @@ namespace RestaurantPicker.Views
             btnRemoveBlocked.Text = LanguageManager.GetTranslation("btnRemoveBlocked");
 
             LanguageManager.ApplyFullButtonImage(btnClose, "icons_complete.png");
+            MakeControlsTransparent(this);
         }
 
         private void LoadData()
@@ -205,6 +208,21 @@ namespace RestaurantPicker.Views
             public override string ToString()
             {
                 return $"{Name} (#{Id})";
+            }
+        }
+
+        private void MakeControlsTransparent(Control parent)
+        {
+            foreach (Control ctrl in parent.Controls)
+            {
+                if (ctrl is Label || ctrl is RadioButton || ctrl is Panel || ctrl is GroupBox || ctrl is CheckBox)
+                {
+                    ctrl.BackColor = Color.Transparent;
+                }
+                if (ctrl.HasChildren)
+                {
+                    MakeControlsTransparent(ctrl);
+                }
             }
         }
     }
