@@ -64,6 +64,8 @@ namespace RestaurantPicker.Views
 
             this.Text = "選擇餐廳";
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackgroundImage = LanguageManager.LoadAssetImage("back3.jpg");
+            this.BackgroundImageLayout = ImageLayout.Stretch;
 
             // 初始化服務
             string csvPath = System.IO.Path.Combine(
@@ -99,6 +101,19 @@ namespace RestaurantPicker.Views
         private void ApplyLanguage()
         {
             this.Text = LanguageManager.GetTranslation("swipeTitle");
+
+            // Make labels, panels transparent for the background
+            foreach (Control ctrl in this.Controls)
+            {
+                if (ctrl is Label || ctrl is Panel)
+                {
+                    ctrl.BackColor = Color.Transparent;
+                }
+            }
+
+            // Make PictureBoxes transparent so they show the card's white background instead of grey
+            picLeftImage.BackColor = Color.Transparent;
+            picRightImage.BackColor = Color.Transparent;
 
             // Apply full-button images dynamically (LanguageManager handles English automatic _e naming!)
             LanguageManager.ApplyFullButtonImage(btnSelectLeft, "icons_left.png");
@@ -141,7 +156,7 @@ namespace RestaurantPicker.Views
             int height = Math.Max(size.Height, 40);
             var bitmap = new Bitmap(width, height);
             using var g = Graphics.FromImage(bitmap);
-            g.Clear(Color.Gainsboro);
+            g.Clear(Color.Transparent);
             using var brush = new SolidBrush(Color.DimGray);
             using var font = new Font("微軟正黑體", 10F, FontStyle.Regular);
             var rect = new RectangleF(0, 0, width, height);
@@ -150,7 +165,7 @@ namespace RestaurantPicker.Views
                 Alignment = StringAlignment.Center,
                 LineAlignment = StringAlignment.Center
             };
-            g.DrawString("暫無圖片", font, brush, rect, format);
+            g.DrawString(LanguageManager.CurrentLanguage == LanguageType.Chinese ? "暫無圖片" : "No Image", font, brush, rect, format);
             return bitmap;
         }
 
@@ -289,8 +304,8 @@ namespace RestaurantPicker.Views
                 lblLeftName.Text = left.Name;
                 lblLeftPhone.Text = LanguageManager.GetTranslation("phoneLabel", left.Phone);
                 lblLeftHours.Text = LanguageManager.GetTranslation("hoursLabel", left.BusinessHours);
-                lblLeftFeature.Text = LanguageManager.GetTranslation("featureLabel", left.Feature);
-                lblLeftFoodType.Text = LanguageManager.GetTranslation("foodTypeLabel", string.Join(", ", left.FoodTypes));
+                lblLeftFeature.Text = LanguageManager.GetTranslation("featureLabel", LanguageManager.GetLocalizedFeature(left.Feature));
+                lblLeftFoodType.Text = LanguageManager.GetTranslation("foodTypeLabel", string.Join(", ", left.FoodTypes.Select(LanguageManager.GetLocalizedTag)));
 
                 // 添加歷史統計
                 if (leftVisitCount > 0)
@@ -317,8 +332,8 @@ namespace RestaurantPicker.Views
                 lblRightName.Text = right.Name;
                 lblRightPhone.Text = LanguageManager.GetTranslation("phoneLabel", right.Phone);
                 lblRightHours.Text = LanguageManager.GetTranslation("hoursLabel", right.BusinessHours);
-                lblRightFeature.Text = LanguageManager.GetTranslation("featureLabel", right.Feature);
-                lblRightFoodType.Text = LanguageManager.GetTranslation("foodTypeLabel", string.Join(", ", right.FoodTypes));
+                lblRightFeature.Text = LanguageManager.GetTranslation("featureLabel", LanguageManager.GetLocalizedFeature(right.Feature));
+                lblRightFoodType.Text = LanguageManager.GetTranslation("foodTypeLabel", string.Join(", ", right.FoodTypes.Select(LanguageManager.GetLocalizedTag)));
 
                 // 添加歷史統計
                 if (rightVisitCount > 0)
