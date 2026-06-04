@@ -27,6 +27,8 @@ namespace RestaurantPicker.Views
             _blockedService = blockedService;
             this.Text = "選擇用餐時段";
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.BackgroundImage = LanguageManager.LoadAssetImage("back3.jpg");
+            this.BackgroundImageLayout = ImageLayout.Stretch;
 
             AcceptButton = btnNext;
             CancelButton = btnCancel;
@@ -70,9 +72,27 @@ namespace RestaurantPicker.Views
             lblRangeTitle.Text = LanguageManager.GetTranslation("mealRange");
             lblHint.Text = LanguageManager.GetTranslation("mealHint");
 
+            // Make labels, radiobuttons, panels, groupboxes transparent recursively
+            MakeControlsTransparent(this);
+
             // Apply full-button images dynamically
             LanguageManager.ApplyFullButtonImage(btnNext, "icons_next.png");
             LanguageManager.ApplyFullButtonImage(btnCancel, "icons_cancel.png");
+        }
+
+        private void MakeControlsTransparent(Control parent)
+        {
+            foreach (Control ctrl in parent.Controls)
+            {
+                if (ctrl is Label || ctrl is RadioButton || ctrl is Panel || ctrl is GroupBox || ctrl is CheckBox)
+                {
+                    ctrl.BackColor = Color.Transparent;
+                }
+                if (ctrl.HasChildren)
+                {
+                    MakeControlsTransparent(ctrl);
+                }
+            }
         }
 
         private void LoadTimeOptions()
