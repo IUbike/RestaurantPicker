@@ -11,8 +11,11 @@ namespace RestaurantPicker.Views
     {
         private readonly Restaurant _restaurant;
         private int _selectedRating = 0;
+        private int _hoverRating = 0;
         private Button[] _starButtons;
         private Label _ratingLabel;
+        private Image? _starGrayImage;
+        private Image? _starYellowImage;
 
         public int SelectedRating { get; private set; }
 
@@ -29,6 +32,7 @@ namespace RestaurantPicker.Views
 
             InitializeUI();
             this.Load += RatingForm_Load;
+            this.FormClosed += RatingForm_FormClosed;
         }
 
         private void InitializeUI()
@@ -58,23 +62,33 @@ namespace RestaurantPicker.Views
                 BackColor = this.BackColor
             };
 
+            int starSize = 70;
+            _starGrayImage = CreateStarImage("icons_star_gray.png", starSize, starSize);
+            _starYellowImage = CreateStarImage("icons_star_yellow.png", starSize, starSize);
+
             _starButtons = new Button[5];
             for (int i = 0; i < 5; i++)
             {
                 int starValue = i + 1;
                 var button = new Button
                 {
-                    Text = "★",
-                    Font = new Font("Arial", 36F),
-                    Width = 70,
-                    Height = 70,
-                    Left = i * 80,
+                    Text = "",
+                    Width = starSize,
+                    Height = starSize,
+                    Left = i * (starSize + 10),
                     Top = 0,
-                    BackColor = SystemColors.Control,
-                    ForeColor = Color.Gray,
+                    BackColor = Color.Transparent,
                     FlatStyle = FlatStyle.Flat,
-                    TabIndex = i
+                    TabIndex = i,
+                    UseVisualStyleBackColor = false
                 };
+
+                button.FlatAppearance.BorderSize = 1;
+                button.FlatAppearance.BorderColor = Color.Silver;
+                button.FlatAppearance.MouseDownBackColor = Color.Transparent;
+                button.FlatAppearance.MouseOverBackColor = Color.Transparent;
+                button.BackgroundImageLayout = ImageLayout.Center;
+                button.BackgroundImage = _starGrayImage;
 
                 int capturedValue = starValue;
                 button.Click += (s, e) =>
@@ -85,12 +99,14 @@ namespace RestaurantPicker.Views
 
                 button.MouseEnter += (s, e) =>
                 {
-                    button.ForeColor = Color.Gold;
+                    _hoverRating = capturedValue;
+                    UpdateStarDisplay();
                 };
 
                 button.MouseLeave += (s, e) =>
                 {
-                    button.ForeColor = (_selectedRating >= capturedValue) ? Color.Gold : Color.Gray;
+                    _hoverRating = 0;
+                    UpdateStarDisplay();
                 };
 
                 _starButtons[i] = button;
@@ -150,6 +166,12 @@ namespace RestaurantPicker.Views
             // 表單載入時的初始化
         }
 
+        private void RatingForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            _starGrayImage?.Dispose();
+            _starYellowImage?.Dispose();
+        }
+
         private void SetRating(int rating)
         {
             _selectedRating = rating;
@@ -162,9 +184,10 @@ namespace RestaurantPicker.Views
 
         private void UpdateStarDisplay()
         {
+            int activeRating = _hoverRating > 0 ? _hoverRating : _selectedRating;
             for (int i = 0; i < 5; i++)
             {
-                _starButtons[i].ForeColor = (i < _selectedRating) ? Color.Gold : Color.Gray;
+                _starButtons[i].BackgroundImage = (i < activeRating) ? _starYellowImage : _starGrayImage;
             }
 
             if (_ratingLabel != null)
@@ -173,6 +196,21 @@ namespace RestaurantPicker.Views
                     ? $"{_selectedRating} {LanguageManager.GetTranslation("starText")}" 
                     : LanguageManager.GetTranslation("unselected");
             }
+        }
+
+        private Image? CreateStarImage(string iconName, int width, int height)
+        {
+            var icon = LanguageManager.LoadIcon(iconName);
+            if (icon == null)
+            {
+                return null;
+            }
+
+            var cropped = LanguageManager.CropTransparentBordersRect(icon);
+            var resized = LanguageManager.ResizeImageKeepAspect(cropped, width, height);
+            icon.Dispose();
+            cropped.Dispose();
+            return resized;
         }
     }
 }
