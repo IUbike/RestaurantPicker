@@ -1,9 +1,11 @@
-# 隨機餐廳選擇系統 串接規格（UI 組 / 資料組）
+# 隨機餐廳選擇系統 串接規格
 
 ## 文件導覽
-- 專案總覽：`README.md`
+- 專案介紹：`Docs/ProjectIntroduction.md`
+- 技術架構：`Docs/ProgramArchitecture.md`
+- 介面與流程：`Docs/Interface.md`
+- 資料層與契約：`Docs/Database.md`
 - 操作手冊：`Docs/UserManual.md`
-- 專題介紹：`Docs/ProjectIntroduction.md`
 
 ## 1. 資料檔位置
 - 餐廳資料：`Data/restaurants.csv`
@@ -57,7 +59,7 @@
 
 ---
 
-## 4. UI 組串接規格
+## 4. 介面串接規格
 
 ### 4.1 目前流程
 `MainForm -> MealSelectForm -> CategorySelectForm -> SwipeForm -> ResultForm`
@@ -80,16 +82,7 @@
 
 ---
 
-## 5. 協作分工建議（Git）
-- 主程式組：`Services/*`、`Repositories/*`、流程控制（`Views/*.cs`）
-- UI 組：`Views/*.Designer.cs`、`Assets/*`
-- 資料組：`Data/restaurants.csv`、分類與標籤
-
-建議避免同時修改同一個 `Designer.cs`，降低衝突。
-
----
-
-## 6. 後續擴充方向
+## 5. 後續擴充方向
 - 將 `CsvRestaurantRepository` 換成資料庫 Repository（不改 Service 介面）
 - 在 `SwipeForm`/`ResultForm` 加入圖片顯示（依 `ImageFileName`）
 - 偏好資料可拆分為 `favorites.json` 與 `blocked.json`（若資料組需要）
