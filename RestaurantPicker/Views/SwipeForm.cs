@@ -27,11 +27,14 @@ namespace RestaurantPicker.Views
         private RestaurantFilterService _filterService;
         private SwipeMatchService _swipeMatchService;
         private UserPreferenceService _preferenceService;
+        private readonly UserProfile _currentUser;
+        private readonly FavoriteService _favoriteService;
+        private readonly BlockedService _blockedService;
 
         private int _totalFilteredCount;
 
         // 舊版相容建構子
-        public SwipeForm(string mealTime, string foodType, bool isRandomCategory)
+        public SwipeForm(string mealTime, string foodType, bool isRandomCategory, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
             : this(
                 mealTime?.ToLower() switch
                 {
@@ -48,11 +51,15 @@ namespace RestaurantPicker.Views
                     _ => 14
                 },
                 string.IsNullOrWhiteSpace(foodType) ? new List<string>() : new List<string> { foodType },
-                isRandomCategory)
+                isRandomCategory,
+                "lunch",
+                currentUser,
+                favoriteService,
+                blockedService)
         {
         }
 
-        public SwipeForm(int minMealHour, int maxMealHour, List<string> selectedFoodTypes, bool isRandomCategory, string mealTimeType = "lunch")
+        public SwipeForm(int minMealHour, int maxMealHour, List<string> selectedFoodTypes, bool isRandomCategory, string mealTimeType, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
         {
             InitializeComponent();
             _minMealHour = Math.Clamp(minMealHour, 0, 23);
@@ -61,6 +68,9 @@ namespace RestaurantPicker.Views
             _selectedFoodTypes = selectedFoodTypes ?? new List<string>();
             _foodType = _selectedFoodTypes.FirstOrDefault();
             _mealTimeType = mealTimeType;  // 記錄用餐時段類型
+            _currentUser = currentUser;
+            _favoriteService = favoriteService;
+            _blockedService = blockedService;
 
             this.Text = "選擇餐廳";
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -216,11 +226,15 @@ namespace RestaurantPicker.Views
             try
             {
                 var allRestaurants = _restaurantRepository.LoadAll();
-                var userPreference = _preferenceService.GetCurrentPreference();
-
                 // 先依時段 + 封鎖篩選
                 var mealTimeFiltered = _filterService.FilterByMealTimeRange(allRestaurants, _minMealHour, _maxMealHour);
-                mealTimeFiltered = _filterService.ExcludeBlocked(mealTimeFiltered, userPreference);
+                if (_currentUser != null)
+                {
+                    var blockedIds = _blockedService.GetByUserId(_currentUser.Id)
+                        .Select(b => b.RestaurantId)
+                        .ToHashSet();
+                    mealTimeFiltered = mealTimeFiltered.Where(r => !blockedIds.Contains(r.Id)).ToList();
+                }
 
                 List<Restaurant> filteredRestaurants;
 
@@ -390,7 +404,17 @@ namespace RestaurantPicker.Views
             }
 
             // 將結果視為序列填入今日六格（左到右，上到下）
-            using var resultForm = new ResultForm(finalRestaurant, "sequential");
+            if (_currentUser == null)
+            {
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "請先選擇使用者" : "Please select a user first",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            using var resultForm = new ResultForm(finalRestaurant, "sequential", _currentUser, _favoriteService, _blockedService);
             if (resultForm.ShowDialog() == DialogResult.OK)
             {
                 this.DialogResult = DialogResult.OK;

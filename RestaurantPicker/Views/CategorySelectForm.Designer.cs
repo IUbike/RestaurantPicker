@@ -36,6 +36,7 @@ namespace RestaurantPicker.Views
             this.lblCandidateCount = new System.Windows.Forms.Label();
             this.lblTagHint = new System.Windows.Forms.Label();
             this.btnClearTags = new System.Windows.Forms.Button();
+            this.btnUsePreferredTags = new System.Windows.Forms.Button();
             this.groupBoxCategory.SuspendLayout();
             this.SuspendLayout();
             
@@ -121,6 +122,15 @@ namespace RestaurantPicker.Views
             this.btnClearTags.Text = "清空標籤";
             this.btnClearTags.UseVisualStyleBackColor = true;
             this.btnClearTags.Click += new System.EventHandler(this.btnClearTags_Click);
+
+            // btnUsePreferredTags
+            this.btnUsePreferredTags.Location = new System.Drawing.Point(250, 187);
+            this.btnUsePreferredTags.Name = "btnUsePreferredTags";
+            this.btnUsePreferredTags.Size = new System.Drawing.Size(146, 24);
+            this.btnUsePreferredTags.TabIndex = 4;
+            this.btnUsePreferredTags.Text = "使用我的偏好標籤";
+            this.btnUsePreferredTags.UseVisualStyleBackColor = true;
+            this.btnUsePreferredTags.Click += new System.EventHandler(this.btnUsePreferredTags_Click);
             
             // pnlSelectedTags
             this.pnlSelectedTags.AutoScroll = true;
@@ -180,6 +190,7 @@ namespace RestaurantPicker.Views
             this.ClientSize = new System.Drawing.Size(516, 396);
             this.Controls.Add(this.lblCandidateCount);
             this.Controls.Add(this.lblTagHint);
+            this.Controls.Add(this.btnUsePreferredTags);
             this.Controls.Add(this.btnClearTags);
             this.Controls.Add(this.pnlSelectedTags);
             this.Controls.Add(this.lblSelectedTitle);
@@ -215,5 +226,6 @@ namespace RestaurantPicker.Views
         private System.Windows.Forms.Label lblCandidateCount;
         private System.Windows.Forms.Label lblTagHint;
         private System.Windows.Forms.Button btnClearTags;
+        private System.Windows.Forms.Button btnUsePreferredTags;
     }
 }

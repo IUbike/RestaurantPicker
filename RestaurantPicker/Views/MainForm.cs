@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+using RestaurantPicker.Models;
 using RestaurantPicker.Properties;
 using RestaurantPicker.Repositories;
 using RestaurantPicker.Services;
@@ -17,6 +18,10 @@ namespace RestaurantPicker.Views
         private RandomPickService _randomPickService;
         private UserPreferenceService _preferenceService;
         private TodayMealService _todayMealService;
+        private UserProfile _currentUser;
+        private readonly FavoriteService _favoriteService;
+        private readonly BlockedService _blockedService;
+        private readonly UserProfileService _userProfileService;
 
         // 今日餐廳面板
         private Panel _todayMealPanel;
@@ -24,9 +29,13 @@ namespace RestaurantPicker.Views
         private Label[] _mealSlotLabels = new Label[6];
         private Button[] _mealSlotButtons = new Button[6];
 
-        public MainForm()
+        public MainForm(UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService, UserProfileService userProfileService)
         {
             InitializeComponent();
+            _currentUser = currentUser;
+            _favoriteService = favoriteService;
+            _blockedService = blockedService;
+            _userProfileService = userProfileService;
             this.Text = "隨機餐廳選擇系統";
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.Sizable;
@@ -64,7 +73,7 @@ namespace RestaurantPicker.Views
             _preferenceService.LoadPreferences();
 
             // 初始化今日餐廳服務
-            _todayMealService = new TodayMealService(_preferenceService, _restaurantRepository);
+            _todayMealService = new TodayMealService(_preferenceService, _restaurantRepository, _currentUser?.Id ?? string.Empty);
 
             // 初始化今日餐廳面板
             InitializeTodayMealPanel();
@@ -142,7 +151,7 @@ namespace RestaurantPicker.Views
         private void ApplyLanguage()
         {
             if (lblTitle == null || btnStart == null || btnTodayMeal == null ||
-                btnManageRestaurant == null || btnManagePreference == null || btnReset == null || btnLanguage == null)
+                btnManageRestaurant == null || btnManagePreference == null || btnReset == null || btnLanguage == null || btnSwitchUser == null)
             {
                 return;
             }
@@ -168,6 +177,12 @@ namespace RestaurantPicker.Views
             btnLanguage.Text = LanguageManager.GetTranslation("langToggle");
             btnLanguage.Image = null; // No standard icon image (GDI+ draws the globe icon instead!)
 
+            btnSwitchUser.FlatStyle = FlatStyle.Flat;
+            btnSwitchUser.FlatAppearance.BorderSize = 0;
+            btnSwitchUser.BackColor = Color.FromArgb(253, 249, 238);
+            btnSwitchUser.ForeColor = Color.FromArgb(115, 87, 61);
+            btnSwitchUser.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese ? "切換使用者" : "Switch User";
+
             // Translate today's panel elements
             if (_todayMealPanel != null)
             {
@@ -184,7 +199,7 @@ namespace RestaurantPicker.Views
         {
             // 避免在 InitializeComponent 尚未完成時觸發 Resize 造成 NullReference
             if (lblTitle == null || btnStart == null || btnTodayMeal == null ||
-                btnManageRestaurant == null || btnManagePreference == null || btnReset == null || btnLanguage == null)
+                btnManageRestaurant == null || btnManagePreference == null || btnReset == null || btnLanguage == null || btnSwitchUser == null)
             {
                 return;
             }
@@ -219,7 +234,11 @@ namespace RestaurantPicker.Views
             btnReset.Location = new Point(x, btnManagePreference.Bottom + gap);
 
             btnLanguage.Size = new Size(130, 42);
-            btnLanguage.Location = new Point(ClientSize.Width - btnLanguage.Width - 24, 24);
+            btnSwitchUser.Size = new Size(160, 42);
+
+            int buttonTop = 24;
+            btnLanguage.Location = new Point(ClientSize.Width - btnLanguage.Width - 24, buttonTop);
+            btnSwitchUser.Location = new Point(btnLanguage.Left - btnSwitchUser.Width - 12, buttonTop);
 
             // Round the corners of the language button to make it a premium capsule shape
             var path = new System.Drawing.Drawing2D.GraphicsPath();
@@ -231,6 +250,15 @@ namespace RestaurantPicker.Views
             path.AddArc(new Rectangle(0, btnLanguage.Height - diameter - 1, diameter, diameter), 90, 90);
             path.CloseFigure();
             btnLanguage.Region = new Region(path);
+
+            var switchPath = new System.Drawing.Drawing2D.GraphicsPath();
+            switchPath.StartFigure();
+            switchPath.AddArc(new Rectangle(0, 0, diameter, diameter), 180, 90);
+            switchPath.AddArc(new Rectangle(btnSwitchUser.Width - diameter - 1, 0, diameter, diameter), 270, 90);
+            switchPath.AddArc(new Rectangle(btnSwitchUser.Width - diameter - 1, btnSwitchUser.Height - diameter - 1, diameter, diameter), 0, 90);
+            switchPath.AddArc(new Rectangle(0, btnSwitchUser.Height - diameter - 1, diameter, diameter), 90, 90);
+            switchPath.CloseFigure();
+            btnSwitchUser.Region = new Region(switchPath);
 
             ApplyTodayMealPanelLayout();
         }
@@ -478,7 +506,7 @@ namespace RestaurantPicker.Views
         /// </summary>
         private void btnStart_Click(object sender, EventArgs e)
         {
-            using var mealForm = new MealSelectForm();
+            using var mealForm = new MealSelectForm(_currentUser, _favoriteService, _blockedService);
             if (mealForm.ShowDialog() == DialogResult.OK)
             {
                 _preferenceService.LoadPreferences();
@@ -503,6 +531,7 @@ namespace RestaurantPicker.Views
             btnTodayMeal.Visible = false;
             btnReset.Visible = false;
             btnLanguage.Visible = false;
+            btnSwitchUser.Visible = false;
 
             // 顯示今日餐廳面板
             _todayMealPanel.Visible = true;
@@ -584,6 +613,7 @@ namespace RestaurantPicker.Views
             btnTodayMeal.Visible = true;
             btnReset.Visible = true;
             btnLanguage.Visible = true;
+            btnSwitchUser.Visible = true;
 
             // 移除返回按鈕（下次進入時重新建立）
             var btnBack = _todayMealPanel.Controls["btnBackToHome"];
@@ -612,8 +642,35 @@ namespace RestaurantPicker.Views
 
         private void btnManagePreference_Click(object sender, EventArgs e)
         {
-            using var preferenceForm = new ManagePreferenceForm(_restaurantRepository);
+            if (_currentUser == null)
+            {
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "請先選擇使用者" : "Please select a user first",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            using var preferenceForm = new ManagePreferenceForm(_restaurantRepository, _currentUser, _favoriteService, _blockedService);
             preferenceForm.ShowDialog();
+        }
+
+        private void btnSwitchUser_Click(object sender, EventArgs e)
+        {
+            using var userSelectForm = new UserSelectForm(_userProfileService, _restaurantRepository);
+            if (userSelectForm.ShowDialog() == DialogResult.OK && userSelectForm.SelectedUser != null)
+            {
+                _currentUser = userSelectForm.SelectedUser;
+                _todayMealService = new TodayMealService(_preferenceService, _restaurantRepository, _currentUser?.Id ?? string.Empty);
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese
+                        ? $"已切換為 {_currentUser.Nickname}"
+                        : $"Switched to {_currentUser.Nickname}",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)

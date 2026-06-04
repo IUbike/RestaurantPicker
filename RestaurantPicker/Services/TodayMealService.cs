@@ -20,14 +20,16 @@ namespace RestaurantPicker.Services
 
         private readonly UserPreferenceService _preferenceService;
         private readonly IRestaurantRepository _restaurantRepository;
+        private readonly string _userId;
 
         // 存儲今日自訂時段標籤
         private readonly Dictionary<int, string> _customLabels = new Dictionary<int, string>();
 
-        public TodayMealService(UserPreferenceService preferenceService, IRestaurantRepository restaurantRepository)
+        public TodayMealService(UserPreferenceService preferenceService, IRestaurantRepository restaurantRepository, string userId)
         {
             _preferenceService = preferenceService;
             _restaurantRepository = restaurantRepository;
+            _userId = userId;
         }
 
         /// <summary>
@@ -39,7 +41,7 @@ namespace RestaurantPicker.Services
             var slots = new TodayMealSlot[6];
 
             // 取得今天的紀錄，依建立時間排序
-            var todayRecords = _preferenceService.GetMealRecordsForToday()
+            var todayRecords = _preferenceService.GetMealRecordsForToday(_userId)
                 .OrderBy(m => m.CreatedAt)
                 .ToList();
 
@@ -104,7 +106,7 @@ namespace RestaurantPicker.Services
         /// </summary>
         public MealRecord SetMealForSlot(string mealTime, int restaurantId, int rating, string? customLabel = null)
         {
-            var existingRecord = _preferenceService.GetMealRecordForTimeSlot(mealTime);
+            var existingRecord = _preferenceService.GetMealRecordForTimeSlot(mealTime, _userId);
             if (existingRecord != null)
             {
                 _preferenceService.DeleteMealRecord(existingRecord.Id);
@@ -113,6 +115,7 @@ namespace RestaurantPicker.Services
             var record = new MealRecord
             {
                 RestaurantId = restaurantId,
+                UserId = _userId,
                 MealDate = DateTime.Now,
                 MealTime = mealTime,
                 CustomMealLabel = customLabel,
@@ -134,6 +137,7 @@ namespace RestaurantPicker.Services
             var record = new MealRecord
             {
                 RestaurantId = restaurantId,
+                UserId = _userId,
                 MealDate = DateTime.Now,
                 MealTime = CUSTOM,
                 CustomMealLabel = label,
@@ -154,7 +158,7 @@ namespace RestaurantPicker.Services
         public MealRecord AddMealToNextAvailableSlot(int restaurantId, int rating = 0, string? customLabel = null, string mealTime = CUSTOM)
         {
             _preferenceService.LoadPreferences();
-            var todayRecords = _preferenceService.GetMealRecordsForToday()
+            var todayRecords = _preferenceService.GetMealRecordsForToday(_userId)
                 .OrderBy(m => m.CreatedAt)
                 .ToList();
 
@@ -181,6 +185,7 @@ namespace RestaurantPicker.Services
             var newRecord = new MealRecord
             {
                 RestaurantId = restaurantId,
+                UserId = _userId,
                 MealDate = DateTime.Now,
                 MealTime = normalizedMealTime,
                 CustomMealLabel = normalizedMealTime == CUSTOM ? (customLabel ?? "其他") : null,

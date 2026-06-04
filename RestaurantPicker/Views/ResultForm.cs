@@ -18,6 +18,9 @@ namespace RestaurantPicker.Views
 
         // 使用者偏好服務
         private readonly UserPreferenceService _preferenceService;
+        private readonly UserProfile _currentUser;
+        private readonly FavoriteService _favoriteService;
+        private readonly BlockedService _blockedService;
 
         // 今日餐廳服務（用於 sequential 模式）
         private readonly TodayMealService _todayMealService;
@@ -28,11 +31,14 @@ namespace RestaurantPicker.Views
         // 是否已經收藏
         private bool _isFavorited = false;
 
-        public ResultForm(Restaurant recommendedRestaurant, string mealTimeMode = "lunch")
+        public ResultForm(Restaurant recommendedRestaurant, string mealTimeMode, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
         {
             InitializeComponent();
             _recommendedRestaurant = recommendedRestaurant;
             _mealTimeMode = mealTimeMode;
+            _currentUser = currentUser;
+            _favoriteService = favoriteService;
+            _blockedService = blockedService;
             this.Text = "推薦結果";
             this.StartPosition = FormStartPosition.CenterScreen;
 
@@ -56,7 +62,7 @@ namespace RestaurantPicker.Views
                 "restaurants.csv"
             );
             var restaurantRepository = new LiteDbRestaurantRepository(databasePath, csvPath);
-            _todayMealService = new TodayMealService(_preferenceService, restaurantRepository);
+            _todayMealService = new TodayMealService(_preferenceService, restaurantRepository, _currentUser?.Id ?? string.Empty);
         }
 
         private void ResultForm_Load(object sender, EventArgs e)
@@ -200,7 +206,8 @@ namespace RestaurantPicker.Views
             picRestaurantImage.Image = LoadRestaurantImage(_recommendedRestaurant.ImageFileName)
                 ?? CreatePlaceholderImage(picRestaurantImage.Size);
 
-            _isFavorited = _preferenceService.IsFavorite(_recommendedRestaurant.Id);
+            _isFavorited = _favoriteService != null && _currentUser != null
+                && _favoriteService.IsFavorite(_currentUser.Id, _recommendedRestaurant.Id);
             UpdateFavoriteButtonAppearance();
         }
 
@@ -241,7 +248,7 @@ namespace RestaurantPicker.Views
             }
 
             // 1. 先刪除今天同一個時段的舊紀錄 (避免重複綁定同一個時段)
-            var todayRecords = _preferenceService.GetMealRecordsForToday();
+            var todayRecords = _preferenceService.GetMealRecordsForToday(_currentUser?.Id);
             var existingRecord = todayRecords.FirstOrDefault(m => m.MealTime == _mealTimeMode);
             if (existingRecord != null)
             {
@@ -252,6 +259,7 @@ namespace RestaurantPicker.Views
             var mealRecord = new MealRecord
             {
                 RestaurantId = _recommendedRestaurant.Id,
+                UserId = _currentUser?.Id ?? string.Empty,
                 MealDate = DateTime.Now,
                 MealTime = _mealTimeMode,
                 Rating = 0,
@@ -268,9 +276,19 @@ namespace RestaurantPicker.Views
 
         private void btnFavorite_Click(object sender, EventArgs e)
         {
+            if (_currentUser == null)
+            {
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "請先選擇使用者" : "Please select a user first",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
             if (_isFavorited)
             {
-                _preferenceService.RemoveFavorite(_recommendedRestaurant.Id);
+                _favoriteService.RemoveFavorite(_currentUser.Id, _recommendedRestaurant.Id);
                 _isFavorited = false;
                 MessageBox.Show(
                     LanguageManager.GetTranslation("favoriteRemoved"),
@@ -280,7 +298,7 @@ namespace RestaurantPicker.Views
             }
             else
             {
-                _preferenceService.AddFavorite(_recommendedRestaurant.Id);
+                _favoriteService.AddFavorite(_currentUser.Id, _recommendedRestaurant);
                 _isFavorited = true;
                 MessageBox.Show(
                     LanguageManager.GetTranslation("favoriteAdded"),
@@ -342,7 +360,17 @@ namespace RestaurantPicker.Views
 
             if (result == DialogResult.Yes)
             {
-                _preferenceService.AddBlocked(_recommendedRestaurant.Id);
+                if (_currentUser == null)
+                {
+                    MessageBox.Show(
+                        LanguageManager.CurrentLanguage == LanguageType.Chinese ? "請先選擇使用者" : "Please select a user first",
+                        LanguageManager.GetTranslation("hintTitle"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
+
+                _blockedService.AddBlocked(_currentUser.Id, _recommendedRestaurant);
                 MessageBox.Show(
                     LanguageManager.GetTranslation("blockDone"),
                     LanguageManager.GetTranslation("hintTitle"),
@@ -369,7 +397,7 @@ namespace RestaurantPicker.Views
                 try
                 {
                     _preferenceService.LoadPreferences();
-                    var todayRecords = _preferenceService.GetMealRecordsForToday();
+                    var todayRecords = _preferenceService.GetMealRecordsForToday(_currentUser?.Id);
                     var record = todayRecords.FirstOrDefault(r => r.RestaurantId == _recommendedRestaurant.Id);
 
                     if (record != null)
@@ -388,6 +416,7 @@ namespace RestaurantPicker.Views
                         var newRecord = new MealRecord
                         {
                             RestaurantId = _recommendedRestaurant.Id,
+                            UserId = _currentUser?.Id ?? string.Empty,
                             MealDate = DateTime.Now,
                             MealTime = _mealTimeMode == "sequential" ? "custom" : _mealTimeMode,
                             Rating = rating,

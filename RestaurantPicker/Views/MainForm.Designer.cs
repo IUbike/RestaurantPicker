@@ -35,6 +35,7 @@ namespace RestaurantPicker.Views
             btnReset = new Button();
             btnStart = new Button();
             btnLanguage = new Button();
+            btnSwitchUser = new Button();
             SuspendLayout();
             // 
             // btnManageRestaurant
@@ -127,6 +128,20 @@ namespace RestaurantPicker.Views
             btnStart.UseVisualStyleBackColor = false;
             btnStart.Click += btnStart_Click;
             // 
+            // btnSwitchUser
+            // 
+            btnSwitchUser.BackColor = Color.FromArgb(253, 249, 238);
+            btnSwitchUser.FlatStyle = FlatStyle.Flat;
+            btnSwitchUser.Font = new Font("微軟正黑體", 10F, FontStyle.Bold, GraphicsUnit.Point, 136);
+            btnSwitchUser.ForeColor = Color.FromArgb(115, 87, 61);
+            btnSwitchUser.Location = new Point(902, 22);
+            btnSwitchUser.Name = "btnSwitchUser";
+            btnSwitchUser.Size = new Size(160, 42);
+            btnSwitchUser.TabIndex = 6;
+            btnSwitchUser.Text = "切換使用者";
+            btnSwitchUser.UseVisualStyleBackColor = false;
+            btnSwitchUser.Click += btnSwitchUser_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(14F, 30F);
@@ -134,6 +149,7 @@ namespace RestaurantPicker.Views
             BackColor = Color.LightGray;
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(1195, 1034);
+            Controls.Add(btnSwitchUser);
             Controls.Add(btnLanguage);
             Controls.Add(btnReset);
             Controls.Add(btnManagePreference);
@@ -163,5 +179,6 @@ namespace RestaurantPicker.Views
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Button btnLanguage;
+        private System.Windows.Forms.Button btnSwitchUser;
     }
 }

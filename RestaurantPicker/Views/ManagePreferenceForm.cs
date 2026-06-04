@@ -13,12 +13,30 @@ namespace RestaurantPicker.Views
     {
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly UserPreferenceService _preferenceService;
+        private readonly FavoriteService _favoriteService;
+        private readonly BlockedService _blockedService;
+        private readonly UserProfile _currentUser;
         private List<Restaurant> _allRestaurants = new List<Restaurant>();
 
-        public ManagePreferenceForm(IRestaurantRepository restaurantRepository)
+        public ManagePreferenceForm(IRestaurantRepository restaurantRepository, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
         {
             InitializeComponent();
             _restaurantRepository = restaurantRepository;
+            _currentUser = currentUser;
+            _favoriteService = favoriteService;
+            _blockedService = blockedService;
+
+            if (_currentUser == null)
+            {
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "請先選擇使用者" : "Please select a user first",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                DialogResult = DialogResult.Cancel;
+                Close();
+                return;
+            }
 
             string databasePath = System.IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
@@ -46,7 +64,10 @@ namespace RestaurantPicker.Views
 
         private void ApplyLanguage()
         {
-            this.Text = LanguageManager.GetTranslation("preferenceTitle");
+            var titleName = _currentUser?.Nickname ?? string.Empty;
+            this.Text = string.IsNullOrWhiteSpace(titleName)
+                ? LanguageManager.GetTranslation("preferenceTitle")
+                : $"{titleName} 的收藏餐廳";
             lblAll.Text = LanguageManager.GetTranslation("lblAll");
             lblFavorites.Text = LanguageManager.GetTranslation("lblFavorites");
             lblBlocked.Text = LanguageManager.GetTranslation("lblBlocked");
@@ -75,26 +96,48 @@ namespace RestaurantPicker.Views
         private void RefreshPreferenceLists()
         {
             var preference = _preferenceService.GetCurrentPreference();
+            var favorites = _favoriteService.GetByUserId(_currentUser.Id);
+            var blocked = _blockedService.GetByUserId(_currentUser.Id);
 
             lstFavorites.Items.Clear();
-            foreach (var id in preference.FavoriteRestaurantIds)
+            foreach (var favorite in favorites)
             {
-                var restaurant = _allRestaurants.FirstOrDefault(r => r.Id == id);
-                if (restaurant != null)
+                var restaurant = _allRestaurants.FirstOrDefault(r => r.Id == favorite.RestaurantId);
+                var name = restaurant?.Name ?? favorite.RestaurantName;
+                if (!string.IsNullOrWhiteSpace(name))
                 {
-                    lstFavorites.Items.Add(new RestaurantListItem(restaurant.Id, restaurant.Name));
+                    lstFavorites.Items.Add(new RestaurantListItem(favorite.RestaurantId, name));
                 }
             }
 
-            lstBlocked.Items.Clear();
-            foreach (var id in preference.BlockedRestaurantIds)
+            if (lstFavorites.Items.Count == 0)
             {
-                var restaurant = _allRestaurants.FirstOrDefault(r => r.Id == id);
-                if (restaurant != null)
+                lstFavorites.Items.Add(LanguageManager.CurrentLanguage == LanguageType.Chinese
+                    ? "目前尚無收藏餐廳"
+                    : "No favorites yet");
+            }
+
+            btnRemoveFavorite.Enabled = favorites.Count > 0;
+
+            lstBlocked.Items.Clear();
+            foreach (var block in blocked)
+            {
+                var restaurant = _allRestaurants.FirstOrDefault(r => r.Id == block.RestaurantId);
+                var name = restaurant?.Name ?? block.RestaurantName;
+                if (!string.IsNullOrWhiteSpace(name))
                 {
-                    lstBlocked.Items.Add(new RestaurantListItem(restaurant.Id, restaurant.Name));
+                    lstBlocked.Items.Add(new RestaurantListItem(block.RestaurantId, name));
                 }
             }
+
+            if (lstBlocked.Items.Count == 0)
+            {
+                lstBlocked.Items.Add(LanguageManager.CurrentLanguage == LanguageType.Chinese
+                    ? "目前尚無封鎖餐廳"
+                    : "No blocked restaurants");
+            }
+
+            btnRemoveBlocked.Enabled = blocked.Count > 0;
         }
 
         private int? GetSelectedRestaurantIdFromAll()
@@ -127,8 +170,12 @@ namespace RestaurantPicker.Views
             }
 
             // 收藏與封鎖互斥：加入收藏時自動移出封鎖
-            _preferenceService.RemoveBlocked(id.Value);
-            _preferenceService.AddFavorite(id.Value);
+            _blockedService.RemoveBlocked(_currentUser.Id, id.Value);
+            var restaurant = _allRestaurants.FirstOrDefault(r => r.Id == id.Value);
+            if (restaurant != null)
+            {
+                _favoriteService.AddFavorite(_currentUser.Id, restaurant);
+            }
             RefreshPreferenceLists();
         }
 
@@ -146,8 +193,12 @@ namespace RestaurantPicker.Views
             }
 
             // 收藏與封鎖互斥：加入封鎖時自動移出收藏
-            _preferenceService.RemoveFavorite(id.Value);
-            _preferenceService.AddBlocked(id.Value);
+            _favoriteService.RemoveFavorite(_currentUser.Id, id.Value);
+            var restaurant = _allRestaurants.FirstOrDefault(r => r.Id == id.Value);
+            if (restaurant != null)
+            {
+                _blockedService.AddBlocked(_currentUser.Id, restaurant);
+            }
             RefreshPreferenceLists();
         }
 
@@ -164,7 +215,7 @@ namespace RestaurantPicker.Views
                 return;
             }
 
-            _preferenceService.RemoveFavorite(id.Value);
+            _favoriteService.RemoveFavorite(_currentUser.Id, id.Value);
             RefreshPreferenceLists();
         }
 
@@ -181,7 +232,7 @@ namespace RestaurantPicker.Views
                 return;
             }
 
-            _preferenceService.RemoveBlocked(id.Value);
+            _blockedService.RemoveBlocked(_currentUser.Id, id.Value);
             RefreshPreferenceLists();
         }
 

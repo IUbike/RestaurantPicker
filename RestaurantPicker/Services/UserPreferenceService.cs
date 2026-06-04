@@ -207,11 +207,18 @@ namespace RestaurantPicker.Services
         /// <summary>
         /// 取得今日的所有用餐紀錄
         /// </summary>
-        public List<MealRecord> GetMealRecordsForToday()
+        public List<MealRecord> GetMealRecordsForToday(string? userId = null)
         {
             var today = DateTime.Now.Date;
-            return _userPreference.MealHistory
-                .Where(m => m.MealDate.Date == today)
+            var query = _userPreference.MealHistory
+                .Where(m => m.MealDate.Date == today);
+
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                query = query.Where(m => string.Equals(m.UserId, userId, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return query
                 .ToList();
         }
 
@@ -246,9 +253,9 @@ namespace RestaurantPicker.Services
         /// <summary>
         /// 取得特定時段今天的用餐紀錄
         /// </summary>
-        public MealRecord? GetMealRecordForTimeSlot(string mealTime)
+        public MealRecord? GetMealRecordForTimeSlot(string mealTime, string? userId = null)
         {
-            var todayRecords = GetMealRecordsForToday();
+            var todayRecords = GetMealRecordsForToday(userId);
             return todayRecords.FirstOrDefault(m => m.MealTime == mealTime);
         }
 

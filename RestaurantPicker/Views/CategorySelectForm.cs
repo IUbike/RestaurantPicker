@@ -21,7 +21,9 @@ namespace RestaurantPicker.Views
         // 服務層
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly RestaurantFilterService _filterService;
-        private readonly UserPreferenceService _preferenceService;
+        private readonly UserProfile _currentUser;
+        private readonly FavoriteService _favoriteService;
+        private readonly BlockedService _blockedService;
 
         // 類別清單狀態
         private List<string> _allAvailableFoodTypes = new List<string>();
@@ -31,37 +33,83 @@ namespace RestaurantPicker.Views
         public string SelectedFoodType { get; private set; }
         public bool IsRandomCategory { get; private set; }
 
-        public CategorySelectForm(int minMealHour, int maxMealHour, string mealTimeType = "lunch")
+        public CategorySelectForm(int minMealHour, int maxMealHour, string mealTimeType, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
         {
             InitializeComponent();
             _minMealHour = minMealHour;
             _maxMealHour = maxMealHour;
             Text = "選擇食物種類";
             StartPosition = FormStartPosition.CenterScreen;
+            _currentUser = currentUser;
+            _favoriteService = favoriteService;
+            _blockedService = blockedService;
 
             string csvPath = System.IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "Data",
                 "restaurants.csv"
             );
-            _restaurantRepository = new CsvRestaurantRepository(csvPath);
-            _filterService = new RestaurantFilterService();
-
-            string preferencePath = System.IO.Path.Combine(
+            string databasePath = System.IO.Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "Data",
-                "user_preferences.json"
+                "restaurantpicker.db"
             );
-            _preferenceService = new UserPreferenceService(preferencePath);
-            _preferenceService.LoadPreferences();
+            _restaurantRepository = new LiteDbRestaurantRepository(databasePath, csvPath);
+            _filterService = new RestaurantFilterService();
 
             AcceptButton = btnNext;
             CancelButton = btnCancel;
         }
 
+        private void btnUsePreferredTags_Click(object sender, EventArgs e)
+        {
+            if (_currentUser == null)
+            {
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "請先選擇使用者" : "Please select a user first",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            if (_currentUser.PreferredTags == null || _currentUser.PreferredTags.Count == 0)
+            {
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "目前尚未設定偏好標籤" : "No preferred tags configured",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            var matchedTags = _currentUser.PreferredTags
+                .Where(tag => _allAvailableFoodTypes.Any(a => string.Equals(a, tag, StringComparison.OrdinalIgnoreCase)))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (matchedTags.Count == 0)
+            {
+                MessageBox.Show(
+                    LanguageManager.CurrentLanguage == LanguageType.Chinese ? "目前尚未設定偏好標籤" : "No preferred tags configured",
+                    LanguageManager.GetTranslation("hintTitle"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            rbSpecific.Checked = true;
+            _selectedFoodTypes.Clear();
+            _selectedFoodTypes.AddRange(matchedTags);
+            RefreshCategoryCombo();
+            RefreshSelectedTagChips();
+            UpdateCandidateCount();
+        }
+
         private void CategorySelectForm_Load(object sender, EventArgs e)
         {
             ApplyLanguage();
+            btnUsePreferredTags.Enabled = _currentUser != null;
             LoadAvailableCategories();
         }
 
@@ -71,6 +119,10 @@ namespace RestaurantPicker.Views
             rbSpecific.Text = LanguageManager.GetTranslation("selectCategory");
             rbRandom.Text = LanguageManager.GetTranslation("randomCategory");
             lblSelectedTitle.Text = LanguageManager.GetTranslation("lblSelectedTitle");
+
+            btnUsePreferredTags.Text = LanguageManager.CurrentLanguage == LanguageType.Chinese
+                ? "使用我的偏好標籤"
+                : "Use my preferred tags";
 
             // Apply full-button images dynamically
             LanguageManager.ApplyFullButtonImage(btnAddTag, "icons_add.png");
@@ -83,8 +135,15 @@ namespace RestaurantPicker.Views
         {
             var allRestaurants = _restaurantRepository.LoadAll();
             var mealTimeRestaurants = _filterService.FilterByMealTimeRange(allRestaurants, _minMealHour, _maxMealHour);
-            var preference = _preferenceService.GetCurrentPreference();
-            return _filterService.ExcludeBlocked(mealTimeRestaurants, preference);
+            if (_currentUser == null)
+            {
+                return mealTimeRestaurants;
+            }
+
+            var blockedIds = _blockedService.GetByUserId(_currentUser.Id)
+                .Select(b => b.RestaurantId)
+                .ToHashSet();
+            return mealTimeRestaurants.Where(r => !blockedIds.Contains(r.Id)).ToList();
         }
 
         private void LoadAvailableCategories()
@@ -279,7 +338,7 @@ namespace RestaurantPicker.Views
                 IsRandomCategory = true;
             }
 
-            using var swipeForm = new SwipeForm(_minMealHour, _maxMealHour, _selectedFoodTypes.ToList(), IsRandomCategory, _mealTimeType);
+            using var swipeForm = new SwipeForm(_minMealHour, _maxMealHour, _selectedFoodTypes.ToList(), IsRandomCategory, _mealTimeType, _currentUser, _favoriteService, _blockedService);
             if (swipeForm.ShowDialog() == DialogResult.OK)
             {
                 DialogResult = DialogResult.OK;
@@ -298,6 +357,7 @@ namespace RestaurantPicker.Views
             cbCategory.Enabled = rbSpecific.Checked;
             btnAddTag.Enabled = rbSpecific.Checked;
             btnClearTags.Enabled = rbSpecific.Checked && _selectedFoodTypes.Count > 0;
+            btnUsePreferredTags.Enabled = rbSpecific.Checked && _currentUser != null;
             pnlSelectedTags.Enabled = rbSpecific.Checked;
             pnlSelectedTags.Visible = rbSpecific.Checked;
             lblSelectedTitle.Visible = rbSpecific.Checked;

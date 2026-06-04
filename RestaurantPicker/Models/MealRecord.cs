@@ -19,6 +19,11 @@ namespace RestaurantPicker.Models
         public int RestaurantId { get; set; }
 
         /// <summary>
+        /// 使用者 ID
+        /// </summary>
+        public string UserId { get; set; } = string.Empty;
+
+        /// <summary>
         /// 用餐日期（YYYY-MM-DD 格式）
         /// </summary>
         public DateTime MealDate { get; set; }
