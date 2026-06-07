@@ -19,9 +19,9 @@ namespace RestaurantPicker.Views
         private UserPreferenceService _preferenceService;
         private TodayMealService _todayMealService;
         private UserProfile _currentUser;
-        private readonly FavoriteService _favoriteService;
-        private readonly BlockedService _blockedService;
-        private readonly UserProfileService _userProfileService;
+        private readonly RestaurantPicker.Services.Interfaces.IFavoriteService _favoriteService;
+        private readonly RestaurantPicker.Services.Interfaces.IBlockedService _blockedService;
+        private readonly RestaurantPicker.Services.Interfaces.IUserProfileService _userProfileService;
 
         // 今日餐廳面板
         private Panel _todayMealPanel;
@@ -29,7 +29,7 @@ namespace RestaurantPicker.Views
         private Label[] _mealSlotLabels = new Label[6];
         private Button[] _mealSlotButtons = new Button[6];
 
-        public MainForm(UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService, UserProfileService userProfileService)
+        public MainForm(UserProfile currentUser, RestaurantPicker.Services.Interfaces.IFavoriteService favoriteService, RestaurantPicker.Services.Interfaces.IBlockedService blockedService, RestaurantPicker.Services.Interfaces.IUserProfileService userProfileService)
         {
             InitializeComponent();
             _currentUser = currentUser;
@@ -575,6 +575,13 @@ namespace RestaurantPicker.Views
                 // 清除偏好檔
                 _preferenceService.ResetPreferences();
 
+                // 清除當前使用者的所有喜愛和封鎖項目
+                if (_currentUser != null && !string.IsNullOrEmpty(_currentUser.Id))
+                {
+                    _favoriteService.ClearByUserId(_currentUser.Id);
+                    _blockedService.ClearByUserId(_currentUser.Id);
+                }
+
                 // 重新載入偏好並刷新 UI
                 _preferenceService.LoadPreferences();
                 RefreshTodayMealPanel();
@@ -584,7 +591,7 @@ namespace RestaurantPicker.Views
                     LanguageManager.GetTranslation("resetDoneTitle"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
-                System.Diagnostics.Debug.WriteLine("[DEBUG] 使用者按下 Reset，已清除所有偏好檔案。");
+                System.Diagnostics.Debug.WriteLine("[DEBUG] 使用者按下 Reset，已清除所有偏好檔案、喜愛項目及封鎖項目。");
             }
             catch (Exception ex)
             {

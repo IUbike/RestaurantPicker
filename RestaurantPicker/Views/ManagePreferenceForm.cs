@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using RestaurantPicker.Models;
 using RestaurantPicker.Repositories;
 using RestaurantPicker.Services;
+using RestaurantPicker.Services.Interfaces;
 
 namespace RestaurantPicker.Views
 {
@@ -13,12 +14,12 @@ namespace RestaurantPicker.Views
     {
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly UserPreferenceService _preferenceService;
-        private readonly FavoriteService _favoriteService;
-        private readonly BlockedService _blockedService;
+        private readonly IFavoriteService _favoriteService;
+        private readonly IBlockedService _blockedService;
         private readonly UserProfile _currentUser;
         private List<Restaurant> _allRestaurants = new List<Restaurant>();
 
-        public ManagePreferenceForm(IRestaurantRepository restaurantRepository, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
+        public ManagePreferenceForm(IRestaurantRepository restaurantRepository, UserProfile currentUser, IFavoriteService favoriteService, IBlockedService blockedService)
         {
             InitializeComponent();
             _restaurantRepository = restaurantRepository;

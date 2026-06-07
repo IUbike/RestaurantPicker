@@ -1,14 +1,16 @@
 using System.Drawing;
+
 using RestaurantPicker.Models;
 using RestaurantPicker.Services;
+using RestaurantPicker.Services.Interfaces;
 
 namespace RestaurantPicker.Views
 {
     public partial class MealSelectForm : Form
     {
         private readonly UserProfile _currentUser;
-        private readonly FavoriteService _favoriteService;
-        private readonly BlockedService _blockedService;
+        private readonly IFavoriteService _favoriteService;
+        private readonly IBlockedService _blockedService;
         public int SelectedMinMealHour { get; private set; }
         public int SelectedMaxMealHour { get; private set; }
 
@@ -19,7 +21,7 @@ namespace RestaurantPicker.Views
 
         private readonly List<string> _timeOptions = new List<string>();
 
-        public MealSelectForm(UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
+        public MealSelectForm(UserProfile currentUser, IFavoriteService favoriteService, IBlockedService blockedService)
         {
             InitializeComponent();
             _currentUser = currentUser;
@@ -182,7 +184,13 @@ namespace RestaurantPicker.Views
             }
 
             // 傳入 SelectedMealTimeType，讓 CategorySelectForm 知道是哪個時段
-            using var categoryForm = new CategorySelectForm(SelectedMinMealHour, SelectedMaxMealHour, SelectedMealTimeType, _currentUser, _favoriteService, _blockedService);
+            using var categoryForm = new CategorySelectForm(
+                SelectedMinMealHour,
+                SelectedMaxMealHour,
+                SelectedMealTimeType,
+                _currentUser,
+                _favoriteService,
+                _blockedService);
             if (categoryForm.ShowDialog() == DialogResult.OK)
             {
                 this.DialogResult = DialogResult.OK;

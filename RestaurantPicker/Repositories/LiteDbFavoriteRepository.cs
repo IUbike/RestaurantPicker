@@ -69,5 +69,12 @@ namespace RestaurantPicker.Repositories
             var collection = db.GetCollection<FavoriteRestaurant>("favorites");
             return collection.Count();
         }
+
+        public void DeleteByUserId(string userId)
+        {
+            using var db = new LiteDatabase(_databasePath);
+            var collection = db.GetCollection<FavoriteRestaurant>("favorites");
+            collection.DeleteMany(f => f.UserId == userId);
+        }
     }
 }

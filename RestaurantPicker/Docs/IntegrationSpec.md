@@ -7,6 +7,23 @@
 - 資料層與契約：`Docs/Database.md`
 - 操作手冊：`Docs/UserManual.md`
 
+## 0. 資料層概觀
+
+### 當前資料儲存方式
+- **餐廳資料**（restaurants）：LiteDB（restaurantpicker.db）
+  - 初始資料由 `Data/restaurants.csv` 匯入
+  - 透過 LiteDbRestaurantRepository 操作
+
+- **使用者相關資料**（users, favorites, blocked）：JSON 檔案
+  - 已預留 LiteDB 實作（LiteDbFavoriteRepository 等）
+  - 可按需切換至 LiteDB 後端（詳見 Database.md）
+
+- **用餐紀錄**（meal_records）：JSON 內嵌於 user_preferences.json
+  - 可遷移至 LitedbMealRecordRepository
+
+### LiteDB 檔案位置
+- `Data/restaurantpicker.db`：單一檔案型態，包含全部 collections（restaurants 目前已啟用）
+
 ## 1. 資料檔位置
 - 餐廳資料：`Data/restaurants.csv`
 - 使用者偏好：`Data/user_preferences.json`
@@ -83,6 +100,30 @@
 ---
 
 ## 5. 後續擴充方向
-- 將 `CsvRestaurantRepository` 換成資料庫 Repository（不改 Service 介面）
-- 在 `SwipeForm`/`ResultForm` 加入圖片顯示（依 `ImageFileName`）
-- 偏好資料可拆分為 `favorites.json` 與 `blocked.json`（若資料組需要）
+
+### 5.1 資料層遷移（推薦）
+- 目前 JSON 版本（FavoriteService、BlockedService）已有 LiteDB 適配器實作
+- 遷移步驟：
+  1. 驗證 LiteDB 適配器與現有 UI 相容性
+  2. 在 Program.cs 切換依賴注入：`new LiteDbFavoriteService()` 替代 `new FavoriteService()`
+  3. 執行資料完整性檢查
+  4. 保留 JSON 備份用於回滾
+
+- 遷移後優勢：
+  - 統一資料存儲格式
+  - 支援復雜查詢與索引
+  - 便於備份與恢復
+
+### 5.2 介面與功能擴充
+- 在 `SwipeForm`/`ResultForm` 加入餐廳圖片顯示（依 `ImageFileName`）
+- 新增「重置資料」功能（已實作 ClearByUserId 方法）
+- 支援多使用者個人化資料隔離
+
+### 5.3 服務層擴充
+- 整合 LiteDbMealRecordService 用於獨立的用餐紀錄管理
+- 新增資料匯出功能（餐廳、偏好到 Excel）
+- 支援資料備份與還原（Tools/backup-and-scan.ps1）
+
+### 5.4 不需改商業邏輯的調整
+- 切換素材（圖片、圖示）無需修改 Service 層
+- CSV 欄位新增無需改 UI，只需更新 CsvRestaurantRepository 解析邏輯

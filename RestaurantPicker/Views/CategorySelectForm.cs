@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using RestaurantPicker.Models;
 using RestaurantPicker.Repositories;
 using RestaurantPicker.Services;
+using RestaurantPicker.Services.Interfaces;
 
 namespace RestaurantPicker.Views
 {
@@ -22,8 +23,8 @@ namespace RestaurantPicker.Views
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly RestaurantFilterService _filterService;
         private readonly UserProfile _currentUser;
-        private readonly FavoriteService _favoriteService;
-        private readonly BlockedService _blockedService;
+        private readonly IFavoriteService _favoriteService;
+        private readonly IBlockedService _blockedService;
 
         // 類別清單狀態
         private List<string> _allAvailableFoodTypes = new List<string>();
@@ -33,7 +34,7 @@ namespace RestaurantPicker.Views
         public string SelectedFoodType { get; private set; }
         public bool IsRandomCategory { get; private set; }
 
-        public CategorySelectForm(int minMealHour, int maxMealHour, string mealTimeType, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
+        public CategorySelectForm(int minMealHour, int maxMealHour, string mealTimeType, UserProfile currentUser, IFavoriteService favoriteService, IBlockedService blockedService)
         {
             InitializeComponent();
             _minMealHour = minMealHour;

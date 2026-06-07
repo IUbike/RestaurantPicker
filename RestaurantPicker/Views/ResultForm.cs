@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using RestaurantPicker.Models;
 using RestaurantPicker.Services;
+using RestaurantPicker.Services.Interfaces;
 using RestaurantPicker.Repositories;
 
 namespace RestaurantPicker.Views
@@ -19,8 +20,8 @@ namespace RestaurantPicker.Views
         // 使用者偏好服務
         private readonly UserPreferenceService _preferenceService;
         private readonly UserProfile _currentUser;
-        private readonly FavoriteService _favoriteService;
-        private readonly BlockedService _blockedService;
+        private readonly IFavoriteService _favoriteService;
+        private readonly IBlockedService _blockedService;
 
         // 今日餐廳服務（用於 sequential 模式）
         private readonly TodayMealService _todayMealService;
@@ -31,7 +32,7 @@ namespace RestaurantPicker.Views
         // 是否已經收藏
         private bool _isFavorited = false;
 
-        public ResultForm(Restaurant recommendedRestaurant, string mealTimeMode, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
+        public ResultForm(Restaurant recommendedRestaurant, string mealTimeMode, UserProfile currentUser, IFavoriteService favoriteService, IBlockedService blockedService)
         {
             InitializeComponent();
             _recommendedRestaurant = recommendedRestaurant;

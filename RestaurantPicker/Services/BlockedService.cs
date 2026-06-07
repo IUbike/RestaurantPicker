@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using RestaurantPicker.Models;
+using RestaurantPicker.Services.Interfaces;
 
 namespace RestaurantPicker.Services
 {
-    public class BlockedService
+    public class BlockedService : IBlockedService
     {
         private readonly string _filePath;
 
@@ -117,6 +118,18 @@ namespace RestaurantPicker.Services
 
             var blocks = LoadAll();
             blocks.RemoveAll(b => string.Equals(b.UserId, userId, StringComparison.OrdinalIgnoreCase) && b.RestaurantId == restaurantId);
+            SaveAll(blocks);
+        }
+
+        public void ClearByUserId(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return;
+            }
+
+            var blocks = LoadAll();
+            blocks.RemoveAll(b => string.Equals(b.UserId, userId, StringComparison.OrdinalIgnoreCase));
             SaveAll(blocks);
         }
     }

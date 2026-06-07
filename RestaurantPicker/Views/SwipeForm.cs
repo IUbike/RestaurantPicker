@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using RestaurantPicker.Models;
 using RestaurantPicker.Repositories;
 using RestaurantPicker.Services;
+using RestaurantPicker.Services.Interfaces;
 
 namespace RestaurantPicker.Views
 {
@@ -28,13 +29,13 @@ namespace RestaurantPicker.Views
         private SwipeMatchService _swipeMatchService;
         private UserPreferenceService _preferenceService;
         private readonly UserProfile _currentUser;
-        private readonly FavoriteService _favoriteService;
-        private readonly BlockedService _blockedService;
+        private readonly IFavoriteService _favoriteService;
+        private readonly IBlockedService _blockedService;
 
         private int _totalFilteredCount;
 
         // 舊版相容建構子
-        public SwipeForm(string mealTime, string foodType, bool isRandomCategory, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
+        public SwipeForm(string mealTime, string foodType, bool isRandomCategory, UserProfile currentUser, IFavoriteService favoriteService, IBlockedService blockedService)
             : this(
                 mealTime?.ToLower() switch
                 {
@@ -59,7 +60,7 @@ namespace RestaurantPicker.Views
         {
         }
 
-        public SwipeForm(int minMealHour, int maxMealHour, List<string> selectedFoodTypes, bool isRandomCategory, string mealTimeType, UserProfile currentUser, FavoriteService favoriteService, BlockedService blockedService)
+        public SwipeForm(int minMealHour, int maxMealHour, List<string> selectedFoodTypes, bool isRandomCategory, string mealTimeType, UserProfile currentUser, IFavoriteService favoriteService, IBlockedService blockedService)
         {
             InitializeComponent();
             _minMealHour = Math.Clamp(minMealHour, 0, 23);
@@ -246,8 +247,8 @@ namespace RestaurantPicker.Views
                 if (_currentUser != null)
                 {
                     var blockedIds = _blockedService.GetByUserId(_currentUser.Id)
-                        .Select(b => b.RestaurantId)
-                        .ToHashSet();
+                            .Select(b => b.RestaurantId)
+                            .ToHashSet();
                     mealTimeFiltered = mealTimeFiltered.Where(r => !blockedIds.Contains(r.Id)).ToList();
                 }
 

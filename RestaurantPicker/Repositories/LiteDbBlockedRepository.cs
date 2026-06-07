@@ -69,5 +69,12 @@ namespace RestaurantPicker.Repositories
             var collection = db.GetCollection<BlockedRestaurant>("blocked");
             return collection.Count();
         }
+
+        public void DeleteByUserId(string userId)
+        {
+            using var db = new LiteDatabase(_databasePath);
+            var collection = db.GetCollection<BlockedRestaurant>("blocked");
+            collection.DeleteMany(b => b.UserId == userId);
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace RestaurantPicker.Views
 {
     public class UserSelectForm : Form
     {
-        private readonly UserProfileService _userProfileService;
+        private readonly RestaurantPicker.Services.Interfaces.IUserProfileService _userProfileService;
         private readonly IRestaurantRepository _restaurantRepository;
         private FlowLayoutPanel _userPanel;
         private Label _lblTitle;
@@ -24,7 +24,7 @@ namespace RestaurantPicker.Views
 
         public UserProfile? SelectedUser { get; private set; }
 
-        public UserSelectForm(UserProfileService userProfileService, IRestaurantRepository restaurantRepository)
+        public UserSelectForm(RestaurantPicker.Services.Interfaces.IUserProfileService userProfileService, IRestaurantRepository restaurantRepository)
         {
             _userProfileService = userProfileService;
             _restaurantRepository = restaurantRepository;

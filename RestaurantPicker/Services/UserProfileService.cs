@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text.Json;
 using RestaurantPicker.Models;
 using RestaurantPicker.Repositories;
+using RestaurantPicker.Services.Interfaces;
 
 namespace RestaurantPicker.Services
 {
-    public class UserProfileService
+    public class UserProfileService : IUserProfileService
     {
         private readonly string _filePath;
 

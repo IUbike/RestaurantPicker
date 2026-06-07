@@ -1,6 +1,8 @@
 using System;
 using RestaurantPicker.Repositories;
 using RestaurantPicker.Services;
+using RestaurantPicker.Services.Interfaces;
+using RestaurantPicker.Services.Adapters;
 using RestaurantPicker.Views;
 
 namespace RestaurantPicker
@@ -24,9 +26,38 @@ namespace RestaurantPicker
             string blockedPath = System.IO.Path.Combine(basePath, "Data", "blocked.json");
 
             var restaurantRepository = new LiteDbRestaurantRepository(databasePath, csvPath);
-            var userProfileService = new UserProfileService(usersPath);
-            var favoriteService = new FavoriteService(favoritesPath);
-            var blockedService = new BlockedService(blockedPath);
+            // 使用 LiteDB-backed services（Adapter）
+            var userProfileService = new LiteDbUserProfileService(databasePath);
+            var favoriteService = new LiteDbFavoriteService(databasePath);
+            var blockedService = new LiteDbBlockedService(databasePath);
+
+            // 預設執行 dry-run 遷移，除非傳入 --migrate
+            bool doMigrate = false;
+            var args = Environment.GetCommandLineArgs();
+            foreach (var a in args)
+            {
+                if (a.Equals("--migrate", StringComparison.OrdinalIgnoreCase))
+                {
+                    doMigrate = true;
+                    break;
+                }
+            }
+
+            if (!doMigrate)
+            {
+                // dry-run: 檢查 JSON 與 LiteDB 的差異，列出報告
+                // 注：DataMigrationTool 尚未集成到主專案中，暫時註解
+                // try
+                // {
+                //     var migrator = new Tools.DataMigrationTool(AppDomain.CurrentDomain.BaseDirectory);
+                //     var dry = migrator.DryRunMigrate();
+                //     System.Diagnostics.Debug.WriteLine($"[MIGRATION DRY RUN] Favorites={dry.FavoritesCount}, Blocked={dry.BlockedCount}, Users={dry.UsersCount}");
+                // }
+                // catch (Exception ex)
+                // {
+                //     System.Diagnostics.Debug.WriteLine($"Migration dry-run failed: {ex.Message}");
+                // }
+            }
 
             using var userSelectForm = new UserSelectForm(userProfileService, restaurantRepository);
             if (userSelectForm.ShowDialog() != DialogResult.OK || userSelectForm.SelectedUser == null)

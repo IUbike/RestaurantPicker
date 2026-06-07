@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using RestaurantPicker.Models;
+using RestaurantPicker.Services.Interfaces;
 
 namespace RestaurantPicker.Services
 {
-    public class FavoriteService
+    public class FavoriteService : IFavoriteService
     {
         private readonly string _filePath;
 
@@ -117,6 +118,18 @@ namespace RestaurantPicker.Services
 
             var favorites = LoadAll();
             favorites.RemoveAll(f => string.Equals(f.UserId, userId, StringComparison.OrdinalIgnoreCase) && f.RestaurantId == restaurantId);
+            SaveAll(favorites);
+        }
+
+        public void ClearByUserId(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return;
+            }
+
+            var favorites = LoadAll();
+            favorites.RemoveAll(f => string.Equals(f.UserId, userId, StringComparison.OrdinalIgnoreCase));
             SaveAll(favorites);
         }
     }
