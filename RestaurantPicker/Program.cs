@@ -21,43 +21,15 @@ namespace RestaurantPicker
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
             string databasePath = System.IO.Path.Combine(basePath, "Data", "restaurantpicker.db");
             string csvPath = System.IO.Path.Combine(basePath, "Data", "restaurants.csv");
-            string usersPath = System.IO.Path.Combine(basePath, "Data", "users.json");
-            string favoritesPath = System.IO.Path.Combine(basePath, "Data", "favorites.json");
-            string blockedPath = System.IO.Path.Combine(basePath, "Data", "blocked.json");
 
             var restaurantRepository = new LiteDbRestaurantRepository(databasePath, csvPath);
-            // 使用 LiteDB-backed services（Adapter）
+            // 使用 LiteDB-backed services（完全轉換到 LiteDB）
             var userProfileService = new LiteDbUserProfileService(databasePath);
             var favoriteService = new LiteDbFavoriteService(databasePath);
             var blockedService = new LiteDbBlockedService(databasePath);
 
-            // 預設執行 dry-run 遷移，除非傳入 --migrate
-            bool doMigrate = false;
-            var args = Environment.GetCommandLineArgs();
-            foreach (var a in args)
-            {
-                if (a.Equals("--migrate", StringComparison.OrdinalIgnoreCase))
-                {
-                    doMigrate = true;
-                    break;
-                }
-            }
-
-            if (!doMigrate)
-            {
-                // dry-run: 檢查 JSON 與 LiteDB 的差異，列出報告
-                // 注：DataMigrationTool 尚未集成到主專案中，暫時註解
-                // try
-                // {
-                //     var migrator = new Tools.DataMigrationTool(AppDomain.CurrentDomain.BaseDirectory);
-                //     var dry = migrator.DryRunMigrate();
-                //     System.Diagnostics.Debug.WriteLine($"[MIGRATION DRY RUN] Favorites={dry.FavoritesCount}, Blocked={dry.BlockedCount}, Users={dry.UsersCount}");
-                // }
-                // catch (Exception ex)
-                // {
-                //     System.Diagnostics.Debug.WriteLine($"Migration dry-run failed: {ex.Message}");
-                // }
-            }
+            // 預設執行（所有資料已在 LiteDB 中管理）
+            // 遺留的遷移邏輯已移除，所有資料互動都透過 LiteDB 進行
 
             using var userSelectForm = new UserSelectForm(userProfileService, restaurantRepository);
             if (userSelectForm.ShowDialog() != DialogResult.OK || userSelectForm.SelectedUser == null)
