@@ -15,7 +15,7 @@ namespace RestaurantPicker.Services
 
     public static class LanguageManager
     {
-        public static LanguageType CurrentLanguage { get; set; } = LanguageType.Chinese;
+        public static LanguageType CurrentLanguage { get; set; } = LanguageType.English;
 
         private static readonly HashSet<string> UniversalIcons = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

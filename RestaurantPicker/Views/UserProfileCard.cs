@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 using RestaurantPicker.Models;
-
+using RestaurantPicker.Services;
 namespace RestaurantPicker.Views
 {
     public class UserProfileCard : UserControl
@@ -104,7 +104,7 @@ namespace RestaurantPicker.Views
         {
             if (IsAddCard)
             {
-                _nameLabel.Text = "＋ 新增使用者";
+                _nameLabel.Text = "＋ Add User";
                 _nameLabel.ForeColor = Color.FromArgb(255, 186, 88);
                 _avatar.Image = CreateAddIcon();
                 _tagPanel.Visible = false;
@@ -116,9 +116,10 @@ namespace RestaurantPicker.Views
             _tagPanel.Controls.Clear();
 
             var tags = Profile?.PreferredTags ?? new List<string>();
-            foreach (var tag in tags.Take(4))
+            foreach (var tag in tags.Take(2))
             {
-                _tagPanel.Controls.Add(CreateTagChip(tag));
+                var displayTag = LanguageManager.GetLocalizedTag(tag);
+                _tagPanel.Controls.Add(CreateTagChip(displayTag));
             }
         }
 

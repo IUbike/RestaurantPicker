@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using RestaurantPicker.Models;
-
+using RestaurantPicker.Services;
 namespace RestaurantPicker.Views
 {
     public class UserProfileForm : Form
@@ -26,7 +26,7 @@ namespace RestaurantPicker.Views
 
         private void InitializeComponent()
         {
-            Text = "新增使用者";
+            Text = "Add User";
             StartPosition = FormStartPosition.CenterParent;
             Size = new Size(480, 520);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -35,7 +35,7 @@ namespace RestaurantPicker.Views
 
             var lblNickname = new Label
             {
-                Text = "暱稱",
+                Text = "Nickname",
                 Location = new Point(20, 20),
                 AutoSize = true
             };
@@ -48,7 +48,7 @@ namespace RestaurantPicker.Views
 
             var lblAvatar = new Label
             {
-                Text = "頭像路徑 (可留空)",
+                Text = "Avatar Path (Optional)",
                 Location = new Point(20, 85),
                 AutoSize = true
             };
@@ -61,7 +61,7 @@ namespace RestaurantPicker.Views
 
             var lblTags = new Label
             {
-                Text = "偏好標籤",
+                Text = "Preferred Tags",
                 Location = new Point(20, 150),
                 AutoSize = true
             };
@@ -74,12 +74,12 @@ namespace RestaurantPicker.Views
 
             foreach (var tag in _availableTags)
             {
-                _tagList.Items.Add(tag);
+                _tagList.Items.Add(LanguageManager.GetLocalizedTag(tag));
             }
 
             _btnSave = new Button
             {
-                Text = "儲存",
+                Text = "Save",
                 Location = new Point(260, 420),
                 Size = new Size(80, 32)
             };
@@ -87,7 +87,7 @@ namespace RestaurantPicker.Views
 
             _btnCancel = new Button
             {
-                Text = "取消",
+                Text = "Cancel",
                 Location = new Point(360, 420),
                 Size = new Size(80, 32)
             };
@@ -108,11 +108,14 @@ namespace RestaurantPicker.Views
             var nickname = _txtNickname.Text.Trim();
             if (string.IsNullOrWhiteSpace(nickname))
             {
-                MessageBox.Show("請輸入暱稱", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please enter a nickname", "Hint", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var tags = _tagList.CheckedItems.Cast<string>().ToList();
+            var tags = _tagList.CheckedItems
+                .Cast<string>()
+                .Select(tag => LanguageManager.GetChineseTag(tag))
+                .ToList();
             CreatedUser = new UserProfile
             {
                 Nickname = nickname,
