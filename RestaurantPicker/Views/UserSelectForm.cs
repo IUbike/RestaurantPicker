@@ -33,7 +33,7 @@ namespace RestaurantPicker.Views
 
         private void InitializeComponent()
         {
-            Text = "選擇使用者";
+            Text = "Select user";
             StartPosition = FormStartPosition.CenterScreen;
             ClientSize = new Size(1280, 720);
             FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -44,7 +44,7 @@ namespace RestaurantPicker.Views
 
             _lblTitle = new Label
             {
-                Text = "誰正在使用？",
+                Text = "Who is using？",
                 Font = new Font("Segoe UI", 28F, FontStyle.Bold),
                 ForeColor = Color.White,
                 AutoSize = true
@@ -52,7 +52,7 @@ namespace RestaurantPicker.Views
 
             _lblSubtitle = new Label
             {
-                Text = "選擇個人檔案以開始探索餐廳",
+                Text = "Select User",
                 Font = new Font("Segoe UI", 12F, FontStyle.Regular),
                 ForeColor = Color.FromArgb(180, 180, 190),
                 AutoSize = true
@@ -167,7 +167,7 @@ namespace RestaurantPicker.Views
         private void SelectUser(UserProfile user)
         {
             SelectedUser = user;
-            _lblWelcome.Text = $"歡迎回來，{user.Nickname}";
+            _lblWelcome.Text = $"Welcome back，{user.Nickname}";
             _lblWelcome.Visible = true;
             CenterWelcomeLabel();
 
